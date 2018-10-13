@@ -29,6 +29,7 @@
 #### 2.9. Проверка elasticsearch
            curl localhost:9200/_cat/health?pretty
            curl localhost:9200/_cluster/health?pretty
+           curl localhost:9200/_cat/indices?v
 
 ### 3. Установка Kibana:
 #### 3.1. Создаём Kibana source list:
@@ -97,7 +98,7 @@ server {
 
 ### 7. Скачивание исходных данных:
 #### 7.1. Создаём директорию для исходных данных:
-       sudo mkdir /tmp/input_logs
+       sudo mkdir /home/loveflorida88/input_data
 #### 7.2. Скачивание item_details_full:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/item_details_full?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103635Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=eb8d824e55bd0c50c4ea5adcc5a034f19a6bd1d51a0ada17f8ff3e92885e305f"
 #### 7.3. Скачивание catalogs:
