@@ -59,7 +59,7 @@
 #### 5.3. Правим конфиги:
        sudo vi /etc/nginx/sites-available/default
 #### 5.4. Прописываем (подставляем свой IP адрес):
-```
+```bash
 server {
     listen 80;
 
@@ -95,13 +95,15 @@ server {
 #### 6.4. Настраиваем 
 
 ### 7. Скачивание исходных данных:
-#### 7.1. Скачивание item_details_full:
+#### 7.1. Создаём директорию для исходных данных:
+       sudo mkdir /tmp/input_logs
+#### 7.2. Скачивание item_details_full:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/item_details_full?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103635Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=eb8d824e55bd0c50c4ea5adcc5a034f19a6bd1d51a0ada17f8ff3e92885e305f"
-#### 7.2. Скачивание catalogs:
+#### 7.3. Скачивание catalogs:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalogs?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103619Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=a71f86444926896adcb545c9eb18a1417452db9a9587a3aa45d508c43b35ae77"
-#### 7.3. Скачивание catalog_path:
+#### 7.4. Скачивание catalog_path:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalog_path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103555Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=1614d2c58972e0e4dcc459be3a548d6f31b21a049c7a72175d01d8208c74a24c"
-#### 7.4. Скачивание ratings:
+#### 7.5. Скачивание ratings:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/ratings?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103652Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=bfa043b8850d639c00764e49d6cd24ed4d0892054ade97552a6061396efe4a35"
 
 ### 8. Создание странички-прототипа:
@@ -110,7 +112,7 @@ server {
 #### 8.2. Создание файла index.html в директории /var/www/search:
        sudo vi /var/www/search/index.html
 #### 8.3. Заполняем файл index.html (подставляем свой IP адрес):
-```
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
