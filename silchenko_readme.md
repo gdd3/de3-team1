@@ -7,67 +7,83 @@
 #### 1.3. Устанавливаем Java 8:
        sudo apt-get -y install oracle-java8-installer
 
-### 2. Установка Elasticsearch:
-#### 2.1. Импортируем Elasticsearch public GPG key:
+### 2. Устанавливаем Certbot
+#### 2.1. Обновляем репозиторий:
+           sudo apt-get update
+#### 2.2. Добавляем репозиторий Certbot:
+           sudo apt-get install software-properties-common
+           sudo add-apt-repository ppa:certbot/certbot
+#### 2.3. Обновляем репозиторий и устанавливаем Certbot
+           sudo apt-get update
+           sudo apt-get install python-certbot-nginx 
+
+### 3. Установка Elasticsearch:
+#### 3.1. Импортируем Elasticsearch public GPG key:
        wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-#### 2.2. Создаём Elasticsearch source list:
+#### 3.2. Создаём Elasticsearch source list:
        echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
-#### 2.3. Обновляем репозиторий:
+#### 3.3. Обновляем репозиторий:
        sudo apt-get update
-#### 2.4. Устанавливаем Elasticsearch:
+#### 3.4. Устанавливаем Elasticsearch:
        sudo apt-get -y install elasticsearch
-#### 2.5. Правим конфиги Elasticsearch:
+#### 3.5. Правим конфиги Elasticsearch:
        sudo vi /etc/elasticsearch/elasticsearch.yml
       Вместо:
        network.host: 192.168.0.1
       Прописываем:
        network.host: localhost
-#### 2.7. Рестартуем сервис:
+#### 3.7. Рестартуем сервис:
        sudo service elasticsearch restart
-#### 2.8. Добавляем в автозагрузку Elasticsearch:
+#### 3.8. Добавляем в автозагрузку Elasticsearch:
        sudo update-rc.d elasticsearch defaults 95 10
-#### 2.9. Проверка elasticsearch
+#### 3.9. Проверка elasticsearch
            curl localhost:9200/_cat/health?pretty
            curl localhost:9200/_cluster/health?pretty
            curl localhost:9200/_cat/indices?v
 
-### 3. Установка Kibana:
-#### 3.1. Создаём Kibana source list:
+### 4. Установка Kibana:
+#### 4.1. Создаём Kibana source list:
        echo "deb http://packages.elastic.co/kibana/4.5/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-4.5.x.list
-#### 3.2. Обновляем репозиторий:
+#### 4.2. Обновляем репозиторий:
        sudo apt-get update
-#### 3.3. Устанавливаем Kibana:
+#### 4.3. Устанавливаем Kibana:
        sudo apt-get -y install kibana
-#### 3.4. Правим конфиги Kibana:
+#### 4.4. Правим конфиги Kibana:
        sudo vi /opt/kibana/config/kibana.yml
       Вместо:
        server.host: "0.0.0.0"
       Прописываем:
        server.host: "localhost"
-#### 3.6. Добавляем в автозагрузку Kibana:
+#### 4.6. Добавляем в автозагрузку Kibana:
        sudo update-rc.d kibana defaults 96 9
-#### 3.7. Рестартуем сервис:
+#### 4.7. Рестартуем сервис:
        sudo service kibana start
 
-### 4. Установка Apache Utilities:
-#### 4.1. Обновляем репозиторий:
+### 5. Установка Apache Utilities:
+#### 5.1. Обновляем репозиторий:
        sudo apt-get update
-#### 4.2. Устанавливаем Apache Utilities:
+#### 5.2. Устанавливаем Apache Utilities:
        sudo apt-get install apache2-utils
 
-### 5. Установка Nginx:
-#### 5.1. Устанавливаем Nginx:
+### 6. Установка Nginx:
+#### 6.1. Устанавливаем Nginx:
        sudo apt-get install nginx
-#### 5.2. Создаём kibanaadmin:
+#### 6.2. Создаём kibanaadmin:
        sudo htpasswd -c /etc/nginx/htpasswd.users kibanaadmin
-#### 5.3. Правим конфиги:
+#### 6.3. Создаём папку и ключи:
+          sudo mkdir /etc/nginx/ssl
+          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
+#### 6.4. Правим конфиги:
        sudo vi /etc/nginx/sites-available/default
-#### 5.4. Прописываем (подставляем свой IP адрес):
+#### 6.5. Прописываем (подставляем свой IP адрес):
 ```bash
 server {
-    listen 80;
+    listen       80 default_server;
+    listen [::]:80 default_server;
 
-    server_name 35.204.41.3;
+    server_name https://35.204.41.3;
+    ssl_certificate      /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key  /etc/nginx/ssl/nginx.key;
 
     auth_basic "Restricted Access";
     auth_basic_user_file /etc/nginx/htpasswd.users;
@@ -82,38 +98,41 @@ server {
     }
 }
 ```
-#### 5.5. Рестартуем сервис:
+#### 6.6. Привязываем домен и сертификат (меняем на свой купленный домен):
+           sudo certbot --nginx -d de3-01.loveflorida88.online -d www.de3-01.loveflorida88.online
+#### 6.7. Проверяем и рестартуем сервис:
+       sudo nginx -t
+       sudo nginx -s reload
        sudo service nginx restart
-#### 5.6. Заходим и проверяем (подставляем свой IP адрес):
-       http://35.204.41.3
+#### 6.8. Заходим и проверяем (подставляем свой купленный домен):
+       https://de3-01.loveflorida88.online
 
-### 6. Установка Logstash
-#### 6.1. Создаём Logstash source list:
+### 7. Установка Logstash
+#### 7.1. Создаём Logstash source list:
        echo 'deb http://packages.elastic.co/logstash/2.2/debian stable main' | sudo tee /etc/apt/sources.list.d/logstash-2.2.x.list
-#### 6.2. Обновляем репозиторий:
+#### 7.2. Обновляем репозиторий:
        sudo apt-get update
-#### 6.3. Устанавливаем Logstash:
+#### 7.3. Устанавливаем Logstash:
        sudo apt-get -y install kibana
-#### 6.4. Настраиваем???
 
-### 7. Скачивание исходных данных:
-#### 7.1. Создаём директорию для исходных данных:
+### 8. Скачивание исходных данных:
+#### 8.1. Создаём директорию для исходных данных:
        sudo mkdir /home/loveflorida88/input_data
-#### 7.2. Скачивание item_details_full:
+#### 8.2. Скачивание item_details_full:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/item_details_full?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103635Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=eb8d824e55bd0c50c4ea5adcc5a034f19a6bd1d51a0ada17f8ff3e92885e305f"
-#### 7.3. Скачивание catalogs:
+#### 8.3. Скачивание catalogs:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalogs?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103619Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=a71f86444926896adcb545c9eb18a1417452db9a9587a3aa45d508c43b35ae77"
-#### 7.4. Скачивание catalog_path:
+#### 8.4. Скачивание catalog_path:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalog_path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103555Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=1614d2c58972e0e4dcc459be3a548d6f31b21a049c7a72175d01d8208c74a24c"
-#### 7.5. Скачивание ratings:
+#### 8.5. Скачивание ratings:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/ratings?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103652Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=bfa043b8850d639c00764e49d6cd24ed4d0892054ade97552a6061396efe4a35"
 
-### 8. Создание странички-прототипа:
-#### 8.1. Создание директории /var/www/search:
+### 9. Создание странички-прототипа:
+#### 9.1. Создание директории /var/www/search:
        sudo mkdir /var/www/search
-#### 8.2. Создание файла index.html в директории /var/www/search:
+#### 9.2. Создание файла index.html в директории /var/www/search:
        sudo vi /var/www/search/index.html
-#### 8.3. Заполняем файл index.html (подставляем свой IP адрес):
+#### 9.3. Заполняем файл index.html (подставляем свой IP адрес и название индекса):
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -132,7 +151,7 @@ server {
 <div id="hits"></div>
 <script type="application/javascript">
   function doSearch (needle) {
-    var searchHost = 'http://35.204.41.3:9200/elasticsearch_index_draco_elastic/_search';
+    var searchHost = 'http://35.204.41.3:9200/elasticsearch_index_silchenko_elastic/_search';
     var body = {
       'size': 10
     };
@@ -171,9 +190,9 @@ server {
 </body>
 </html>
 ```
-#### 8.4. Правим конфиги:
+#### 9.4. Правим конфиги:
        sudo vi /etc/nginx/sites-enabled/default
-#### 8.5. Прописываем (подставляем свой IP адрес):
+#### 9.5. Прописываем (подставляем свой IP адрес):
 ```bash
 server {
      listen 80 default_server;
@@ -187,3 +206,9 @@ server {
           }
 }
 ```
+#### 9.6. Рестартуем сервис:
+       sudo nginx -t
+       sudo nginx -s reload
+       sudo service nginx restart
+#### 9.7. Заходим и проверяем (подставляем свой IP адрес):
+       http://35.204.41.3
