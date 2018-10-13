@@ -26,6 +26,9 @@
        sudo service elasticsearch restart
 #### 2.8. Добавляем в автозагрузку Elasticsearch:
        sudo update-rc.d elasticsearch defaults 95 10
+#### 2.9. Проверка elasticsearch
+           curl localhost:9200/_cat/health?pretty
+           curl localhost:9200/_cluster/health?pretty
 
 ### 3. Установка Kibana:
 #### 3.1. Создаём Kibana source list:
@@ -63,14 +66,12 @@
 server {
     listen 80;
 
-   # server_name https://35.204.41.3;
     server_name 35.204.41.3;
 
     auth_basic "Restricted Access";
     auth_basic_user_file /etc/nginx/htpasswd.users;
 
     location / {
-       # proxy_pass http://35.204.41.3:5601;
         proxy_pass http://localhost:5601;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -92,7 +93,7 @@ server {
        sudo apt-get update
 #### 6.3. Устанавливаем Logstash:
        sudo apt-get -y install kibana
-#### 6.4. Настраиваем 
+#### 6.4. Настраиваем???
 
 ### 7. Скачивание исходных данных:
 #### 7.1. Создаём директорию для исходных данных:
@@ -168,4 +169,20 @@ server {
 </script>
 </body>
 </html>
+```
+#### 8.4. Правим конфиги:
+       sudo vi /etc/nginx/sites-enabled/default
+#### 8.5. Прописываем (подставляем свой IP адрес):
+```bash
+server {
+     listen 80 default_server;
+     listen [::]:80;
+     server_name _;
+     root /var/www/search;
+          location / {
+                  index index.html;
+                  alias /var/www/search/;
+                  default_type text/html;
+          }
+}
 ```
