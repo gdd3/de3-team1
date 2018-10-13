@@ -98,13 +98,13 @@ server {
     }
 }
 ```
-#### 6.6. Привязываем домен и сертификат:
+#### 6.6. Привязываем домен и сертификат (меняем на свой купленный домен):
            sudo certbot --nginx -d de3-01.loveflorida88.online -d www.de3-01.loveflorida88.online
-#### 6.7. Рестартуем сервис:
-       sudo service nginx restart
+#### 6.7. Проверяем и рестартуем сервис:
        sudo nginx -t
        sudo nginx -s reload
-#### 6.8. Заходим и проверяем (подставляем свой IP адрес):
+       sudo service nginx restart
+#### 6.8. Заходим и проверяем (подставляем свой купленный домен):
        https://de3-01.loveflorida88.online
 
 ### 7. Установка Logstash
@@ -207,8 +207,8 @@ server {
 }
 ```
 #### 9.6. Рестартуем сервис:
-       sudo service nginx restart
        sudo nginx -t
        sudo nginx -s reload
+       sudo service nginx restart
 #### 9.7. Заходим и проверяем (подставляем свой IP адрес):
        http://35.204.41.3
