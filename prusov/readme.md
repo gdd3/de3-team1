@@ -1,10 +1,10 @@
 ## Настройка прокси сервера
-У нас есть static ip и свое доменное имя [доменное имя]. Чтобы не перенастраивать под каждую лабу статический ip на разные VM-ы, настроим отдельный прокси-сервер.
+У нас есть static ip и свое доменное имя www.de30pro.com. Чтобы не перенастраивать под каждую лабу статический ip на разные VM-ы, настроим отдельный прокси-сервер.
 
 ### Создаем новый инстанс на GCP
 Заходим в раздел `Compute Engine`, далее в `VM Instances` и создаем VM f1-micro.
 Заходим в раздел `VPC network`, далее в `External ip addresses` и назначаем новому экземпляру static ip.
-Заходим в раздел `Network services`,  далее в `Cloud DNS` и добавляем записи для сервера:
+Заходим в раздел `Network services`,  далее в `Cloud DNS` и добавляем записи для проксирования на 1ю лабу:
 - project-1.de30pro.com
 - www.project-1.de30pro.com
 
@@ -27,6 +27,14 @@
     sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
     sudo certbot --nginx -d project-1.de30pro.com -d www.project-1.de30pro.com
 ```
+
+Проверим доступ к web-серверу извне
+В браузере зайдем на страничку project-1.de30pro.com, прописанную в GCP Cloud DSN и убедимся что запрос приходит на nginx нашего нового прокси-сервера.
+
+### ЧЕРНОВИК
+
+Установим Apache utils
+```    sudo apt-get install apache2-utils```
 
 Правим конфиги
 ```
@@ -51,9 +59,3 @@ server {
     }
 }
 ```
-
-Проверим доступ к web-серверу извне
-В браузере зайдем на страничку project-1.de30pro.com, прописанную в GCP Cloud DSN и убедимся что запрос приходит на nginx нашего нового прокси-сервера.
-
-Установим Apache utils
-```    sudo apt-get install apache2-utils```
