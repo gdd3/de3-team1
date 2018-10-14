@@ -1,3 +1,37 @@
+## Установка ELK
+### Установка Java 8
+```
+sudo add-apt-repository -y ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get -y install oracle-java8-installer
+```
+### Установка Elastic search
+```
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.2.tar.gz
+tar -xvf elasticsearch-6.4.2.tar.gz
+```
+Запускаем
+```
+cd elasticsearch-6.4.2
+./bin/elasticsearch
+```
+
+Проверяем работу сервиса
+```
+curl localhost:9200/_cat/health?pretty
+curl localhost:9200/_cluster/health?pretty
+curl localhost:9200/_cat/indices?v
+```
+
+## Установка Kibana
+```
+cd ~ls
+wget https://artifacts.elastic.co/downloads/kibana/kibana-6.4.2-linux-x86_64.tar.gz
+tar -xvf kibana-6.4.2-linux-x86_64.tar.gz
+cd kibana-6.4.2-linux-x86_64
+./bin/kibana
+```
+
 ## Настройка прокси сервера
 У нас есть static ip и свое доменное имя www.de30pro.com. Чтобы не перенастраивать под каждую лабу статический ip на разные VM-ы, настроим отдельный прокси-сервер.
 
@@ -33,29 +67,4 @@
 
 ### ЧЕРНОВИК
 
-Установим Apache utils
-```    sudo apt-get install apache2-utils```
-
-Правим конфиги
-```
-server {
-    listen       80 default_server;
-    listen [::]:80 default_server;
-
-    server_name https://project-1.de30pro.com;
-    ssl_certificate      /etc/nginx/ssl/nginx.crt;
-    ssl_certificate_key  /etc/nginx/ssl/nginx.key;
-
-    auth_basic "Restricted Access";
-    auth_basic_user_file /etc/nginx/htpasswd.users;
-
-    location / {
-        proxy_pass http://localhost:5601; #добавить DNS-имя сервака с kibana
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+ssh -i ~/.ssh/okarin_private okarin@35.204.80.159
