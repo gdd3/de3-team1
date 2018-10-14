@@ -37,9 +37,9 @@
 #### 3.8. Добавляем в автозагрузку Elasticsearch:
        sudo update-rc.d elasticsearch defaults 95 10
 #### 3.9. Проверка elasticsearch
-           curl localhost:9200/_cat/health?pretty
-           curl localhost:9200/_cluster/health?pretty
-           curl localhost:9200/_cat/indices?v
+       curl localhost:9200/_cat/health?pretty
+       curl localhost:9200/_cluster/health?pretty
+       curl localhost:9200/_cat/indices?v
 
 ### 4. Установка Kibana:
 #### 4.1. Создаём Kibana source list:
@@ -65,74 +65,12 @@
 #### 5.2. Устанавливаем Apache Utilities:
        sudo apt-get install apache2-utils
 
-### 6. Установка Nginx:
-#### 6.1. Устанавливаем Nginx:
-       sudo apt-get install nginx
-#### 6.2. Создаём kibanaadmin:
-       sudo htpasswd -c /etc/nginx/htpasswd.users kibanaadmin
-#### 6.3. Создаём папку и ключи:
-          sudo mkdir /etc/nginx/ssl
-          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
-#### 6.4. Правим конфиги:
-       sudo vi /etc/nginx/sites-available/default
-#### 6.5. Прописываем (подставляем свой IP адрес):
-```bash
-server {
-    listen       80 default_server;
-    listen [::]:80 default_server;
-
-    server_name https://35.204.41.3;
-    ssl_certificate      /etc/nginx/ssl/nginx.crt;
-    ssl_certificate_key  /etc/nginx/ssl/nginx.key;
-
-    auth_basic "Restricted Access";
-    auth_basic_user_file /etc/nginx/htpasswd.users;
-
-    location / {
-        proxy_pass http://localhost:5601;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-#### 6.6. Привязываем домен и сертификат (меняем на свой купленный домен):
-           sudo certbot --nginx -d de3-01.loveflorida88.online -d www.de3-01.loveflorida88.online
-#### 6.7. Проверяем и рестартуем сервис:
-       sudo nginx -t
-       sudo nginx -s reload
-       sudo service nginx restart
-#### 6.8. Заходим и проверяем (подставляем свой купленный домен):
-       https://de3-01.loveflorida88.online
-
-### 7. Установка Logstash
-#### 7.1. Создаём Logstash source list:
-       echo 'deb http://packages.elastic.co/logstash/2.2/debian stable main' | sudo tee /etc/apt/sources.list.d/logstash-2.2.x.list
-#### 7.2. Обновляем репозиторий:
-       sudo apt-get update
-#### 7.3. Устанавливаем Logstash:
-       sudo apt-get -y install kibana
-
-### 8. Скачивание исходных данных:
-#### 8.1. Создаём директорию для исходных данных:
-       sudo mkdir /home/loveflorida88/input_data
-#### 8.2. Скачивание item_details_full:
-       wget "http://data.cluster-lab.com/data-newprolab-com/project02/item_details_full?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103635Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=eb8d824e55bd0c50c4ea5adcc5a034f19a6bd1d51a0ada17f8ff3e92885e305f"
-#### 8.3. Скачивание catalogs:
-       wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalogs?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103619Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=a71f86444926896adcb545c9eb18a1417452db9a9587a3aa45d508c43b35ae77"
-#### 8.4. Скачивание catalog_path:
-       wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalog_path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103555Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=1614d2c58972e0e4dcc459be3a548d6f31b21a049c7a72175d01d8208c74a24c"
-#### 8.5. Скачивание ratings:
-       wget "http://data.cluster-lab.com/data-newprolab-com/project02/ratings?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103652Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=bfa043b8850d639c00764e49d6cd24ed4d0892054ade97552a6061396efe4a35"
-
-### 9. Создание странички-прототипа:
-#### 9.1. Создание директории /var/www/search:
+### 6. Создание странички-прототипа:
+#### 6.1. Создание директории /var/www/search:
        sudo mkdir /var/www/search
-#### 9.2. Создание файла index.html в директории /var/www/search:
+#### 6.2. Создание файла index.html в директории /var/www/search:
        sudo vi /var/www/search/index.html
-#### 9.3. Заполняем файл index.html (подставляем свой IP адрес и название индекса):
+#### 6.3. Заполняем файл index.html (подставляем своё доменное имя и название индекса):
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -151,7 +89,7 @@ server {
 <div id="hits"></div>
 <script type="application/javascript">
   function doSearch (needle) {
-    var searchHost = 'http://35.204.41.3:9200/elasticsearch_index_silchenko_elastic/_search';
+    var searchHost = 'https://de3-01-elasticsearch.loveflorida88.online/silchenko/_search';
     var body = {
       'size': 10
     };
@@ -190,25 +128,104 @@ server {
 </body>
 </html>
 ```
-#### 9.4. Правим конфиги:
-       sudo vi /etc/nginx/sites-enabled/default
-#### 9.5. Прописываем (подставляем свой IP адрес):
+
+### 7. Установка Nginx:
+#### 7.1. Устанавливаем Nginx:
+       sudo apt-get install nginx
+#### 7.2. Создаём kibanaadmin:
+       sudo htpasswd -c /etc/nginx/htpasswd.users kibanaadmin
+#### 7.3. Создаём папку и ключи:
+          sudo mkdir /etc/nginx/ssl
+          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
+#### 7.4. Правим конфиги:
+       sudo vi /etc/nginx/sites-available/default
+#### 7.5. Прописываем (подставляем свои доменные имена):
 ```bash
 server {
-     listen 80 default_server;
-     listen [::]:80;
-     server_name _;
-     root /var/www/search;
-          location / {
-                  index index.html;
-                  alias /var/www/search/;
-                  default_type text/html;
-          }
+
+    root /var/www/search;
+    server_name de3-01-search.loveflorida88.online www.de3-01-search.loveflorida88.online; 
+
+    location / {
+            index index.html;
+            alias /var/www/search/;
+            default_type text/html;
+    }
+}
+
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name de3-01-kibana.loveflorida88.online www.de3-01-kibana.loveflorida88.online;
+
+    location / {
+        proxy_pass http://localhost:5601;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name de3-01-elasticsearch.loveflorida88.online www.de3-01-elasticsearch.loveflorida88.online;
+
+    location / {
+        proxy_pass http://localhost:9200;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+        
+        add_header 'Access-Control-Allow-Origin' "$http_origin";
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Headers' 'User-Agent,Keep-Alive,Content-Type';
+    }
 }
 ```
-#### 9.6. Рестартуем сервис:
+#### 7.6. Привязываем домен и сертификат (меняем на свои доменные имена):
+       sudo certbot --nginx -d de3-01-kibana.loveflorida88.online -d www.de3-01-kibana.loveflorida88.online
+       sudo certbot --nginx -d de3-01-elasticsearch.loveflorida88.online -d www.de3-01-elasticsearch.loveflorida88.online
+       sudo certbot --nginx -d de3-01-search.loveflorida88.online -d www.de3-01-search.loveflorida88.online
+#### 7.7. Проверяем и рестартуем сервис:
        sudo nginx -t
        sudo nginx -s reload
        sudo service nginx restart
-#### 9.7. Заходим и проверяем (подставляем свой IP адрес):
-       http://35.204.41.3
+#### 7.8. Заходим и проверяем (подставляем свои доменные имена):
+       https://de3-01-kibana.loveflorida88.online
+       https://de3-01-elasticsearch.loveflorida88.online/silchenko/_search
+       https://de3-01-search.loveflorida88.online
+
+### 8. Установка Logstash
+#### 8.1. Создаём Logstash source list:
+       echo 'deb http://packages.elastic.co/logstash/2.2/debian stable main' | sudo tee /etc/apt/sources.list.d/logstash-2.2.x.list
+#### 8.2. Обновляем репозиторий:
+       sudo apt-get update
+#### 8.3. Устанавливаем Logstash:
+       sudo apt-get -y install kibana
+
+### 9. Скачивание исходных данных:
+#### 9.1. Создаём директорию для исходных данных:
+       sudo mkdir /home/loveflorida88/input_data
+#### 9.2. Скачивание item_details_full:
+       wget "http://data.cluster-lab.com/data-newprolab-com/project02/item_details_full?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103635Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=eb8d824e55bd0c50c4ea5adcc5a034f19a6bd1d51a0ada17f8ff3e92885e305f"
+#### 9.3. Скачивание catalogs:
+       wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalogs?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103619Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=a71f86444926896adcb545c9eb18a1417452db9a9587a3aa45d508c43b35ae77"
+#### 9.4. Скачивание catalog_path:
+       wget "http://data.cluster-lab.com/data-newprolab-com/project02/catalog_path?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103555Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=1614d2c58972e0e4dcc459be3a548d6f31b21a049c7a72175d01d8208c74a24c"
+#### 9.5. Скачивание ratings:
+       wget "http://data.cluster-lab.com/data-newprolab-com/project02/ratings?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103652Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=bfa043b8850d639c00764e49d6cd24ed4d0892054ade97552a6061396efe4a35"
+
