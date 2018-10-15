@@ -1,0 +1,138 @@
+server {
+    listen       80 default_server;
+    listen [::]:80 default_server;
+
+    # SSL configuration
+    listen 443 ssl default_server;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name https://35.204.16.60;
+    ssl_certificate      /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key  /etc/nginx/ssl/nginx.key;
+
+    #auth_basic "Restricted Access";
+    #auth_basic_user_file /etc/nginx/htpasswd.users;
+
+    location / {
+        proxy_pass http://localhost:5601;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;        
+    }
+}
+server {
+
+    root /var/www/dataengineer;
+    server_name search.gdd3.work www.search.gdd3.work; 
+
+    location / {
+            index index.html;
+            alias /var/www/dataengineer/search/;
+            default_type text/html;
+    }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/search.gdd3.work/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/search.gdd3.work/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+
+
+}
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name elasticsearch.gdd3.work www.elasticsearch.gdd3.work;
+
+    location / {
+        proxy_pass http://localhost:9200;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+        
+        add_header 'Access-Control-Allow-Origin' "$http_origin";
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Headers' 'User-Agent,Keep-Alive,Content-Type';
+    }
+
+
+    ssl_certificate /etc/letsencrypt/live/elasticsearch.gdd3.work/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/elasticsearch.gdd3.work/privkey.pem; # managed by Certbot
+
+}server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name kibana.gdd3.work www.kibana.gdd3.work; # managed by certbot
+    ssl_certificate /etc/letsencrypt/live/kibana.gdd3.work/fullchain.pem; # managed by certbot
+    ssl_certificate_key /etc/letsencrypt/live/kibana.gdd3.work/privkey.pem; # managed by certbot
+
+    location / {
+        proxy_pass http://localhost:5601;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;        
+    }
+
+
+
+
+}server {
+    if ($host = www.kibana.gdd3.work) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = kibana.gdd3.work) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen       80 ;
+    listen [::]:80 ;
+    server_name kibana.gdd3.work www.kibana.gdd3.work;
+    return 404; # managed by Certbot
+
+
+
+
+}
+
+server {
+    if ($host = www.search.gdd3.work) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = search.gdd3.work) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name search.gdd3.work www.search.gdd3.work;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+
+
+}

@@ -1,0 +1,13 @@
+{
+    "properties" : {
+        "annotation": {"type": "text"},
+        "name": {"type": "keyword"},
+        "author": {"type": "keyword"},
+        "itemid": {"type": "integer"},
+        "parent_id": {"type": "integer"},
+        "rating": {"type": "double"},
+        "catalogid": {"type": "integer"},
+        "catalogpath": {"type": "text"}
+        }
+    }
+}

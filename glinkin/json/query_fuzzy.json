@@ -1,0 +1,10 @@
+GET item/_search
+{
+  "query": {
+    "multi_match" : {
+      "query":    "книги для детей 100 способов",
+      "fields": [ "name^2", "annotation" ],
+      "fuzziness": "AUTO"
+    }
+  }
+}
