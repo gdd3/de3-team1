@@ -1,4 +1,4 @@
-# de3-team1-silchenko
+# de3-team1-silchenko ELK
 ### 1. Установка Java 8:
 #### 1.1. Добавляем репозиторий:
        sudo add-apt-repository -y ppa:webupd8team/java
