@@ -234,3 +234,45 @@ server {
 #### 9.5. Скачивание ratings:
        wget "http://data.cluster-lab.com/data-newprolab-com/project02/ratings?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=HI36GTQZKTLEH30CJ443%2F20181013%2F%2Fs3%2Faws4_request&X-Amz-Date=20181013T103652Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host&X-Amz-Signature=bfa043b8850d639c00764e49d6cd24ed4d0892054ade97552a6061396efe4a35"
 
+### 10. Установка JQ и ESBULK:
+#### 10.1. Устанавливаем JQ:
+       sudo apt install jq
+#### 10.2. Устанавливаем ESBULK:
+       wget "https://github.com/miku/esbulk/releases/download/v0.5.1/esbulk_0.5.1_amd64.deb"
+       sudo apt install ./esbulk_0.5.1_amd64.deb
+
+### 11. Загрузка данных:
+#### 11.1. Создаём индекс silchenko (меняем на своё название):
+PUT silchenko
+{
+    "settings" : {
+        "number_of_shards" : 1,
+        "number_of_replicas": 0
+    }
+}
+#### 11.2. Создаём маппинг silchenko_mapping.json (меняем на своё название):
+{
+    "properties" : {
+        "annotation": {"type": "text"},
+        "name": {"type": "keyword"},
+        "author": {"type": "keyword"},
+        "itemid": {"type": "integer"},
+        "parent_id": {"type": "integer"},
+        "rating": {"type": "double"},
+        "catalogid": {"type": "integer"},
+        "catalogpath": {"type": "text"}
+        }
+    }
+}
+#### 11.3. Загружаем рейтинги (меняем на свои названия файлов):
+       cat ratings_original.json | esbulk -verbose -index silchenko -mapping silchenko_mapping.json
+#### 11.4. Загружаем каталоги (меняем на свои названия файлов):
+       cat catalog_original.json | esbulk -verbose -index silchenko -mapping silchenko_mapping.json
+#### 11.5. Загружаем пути каталогов (меняем на свои названия файлов):
+       cat catalog_path_original.json | \
+       jq -c '.["catalogpath"] = (.catalogpath|tostring)' | \
+       esbulk -verbose -index silchenko -mapping silchenko_mapping.json
+#### 11.6. Загружаем предметы (меняем на свои названия файлов):
+       cat item_details_full_original.json | \
+       jq  -c '.["annotation"] = .attr0 | .["name"] = .attr1 | .["author"] = .attr2 | {annotation, name, author, itemid, parent_id}' | \
+       esbulk -verbose -index item -mapping silchenko_mapping.json
