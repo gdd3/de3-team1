@@ -243,6 +243,7 @@ server {
 
 ### 11. Загрузка данных:
 #### 11.1. Создаём индекс silchenko (меняем на своё название):
+```
 PUT silchenko
 {
     "settings" : {
@@ -250,7 +251,9 @@ PUT silchenko
         "number_of_replicas": 0
     }
 }
+```
 #### 11.2. Создаём маппинг silchenko_mapping.json (меняем на своё название):
+```
 {
     "properties" : {
         "annotation": {"type": "text"},
@@ -264,6 +267,7 @@ PUT silchenko
         }
     }
 }
+```
 #### 11.3. Загружаем рейтинги (меняем на свои названия файлов):
        cat ratings_original.json | esbulk -verbose -index silchenko -mapping silchenko_mapping.json
 #### 11.4. Загружаем каталоги (меняем на свои названия файлов):
