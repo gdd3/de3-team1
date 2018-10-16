@@ -21,7 +21,7 @@
 #### 3.1. Импортируем Elasticsearch public GPG key:
        wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 #### 3.2. Создаём Elasticsearch source list:
-       echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
+       echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list
 #### 3.3. Обновляем репозиторий:
        sudo apt-get update
 #### 3.4. Устанавливаем Elasticsearch:
@@ -34,30 +34,35 @@
        network.host: localhost
 #### 3.7. Рестартуем сервис:
        sudo service elasticsearch restart
-#### 3.8. Добавляем в автозагрузку Elasticsearch:
-       sudo update-rc.d elasticsearch defaults 95 10
+#### 3.8. Добавляем в автозагрузку Elasticsearch и проверяем статус:
+       sudo systemctl enable elasticsearch.service
+       sudo systemctl status elasticsearch.service
 #### 3.9. Проверка elasticsearch
        curl localhost:9200/_cat/health?pretty
        curl localhost:9200/_cluster/health?pretty
        curl localhost:9200/_cat/indices?v
 
 ### 4. Установка Kibana:
-#### 4.1. Создаём Kibana source list:
-       echo "deb http://packages.elastic.co/kibana/4.5/debian stable main" | sudo tee -a /etc/apt/sources.list.d/kibana-4.5.x.list
-#### 4.2. Обновляем репозиторий:
+#### 4.1. Импортируем Kibana public GPG key:
+       wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+#### 4.2. Создаём Kibana source list:
+       echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list
+#### 4.3. Обновляем репозиторий:
        sudo apt-get update
-#### 4.3. Устанавливаем Kibana:
+#### 4.4. Устанавливаем Kibana:
        sudo apt-get -y install kibana
-#### 4.4. Правим конфиги Kibana:
-       sudo vi /opt/kibana/config/kibana.yml
+#### 4.5. Правим конфиги Kibana:
+       sudo vi /etc/kibana/kibana.yml
       Вместо:
        server.host: "0.0.0.0"
       Прописываем:
        server.host: "localhost"
-#### 4.6. Добавляем в автозагрузку Kibana:
-       sudo update-rc.d kibana defaults 96 9
-#### 4.7. Рестартуем сервис:
-       sudo service kibana start
+#### 4.6. Рестартуем сервис:
+       sudo service kibana restart
+#### 4.7. Добавляем в автозагрузку Kibana и проверяем статус:
+       sudo systemctl enable kibana.service
+       sudo systemctl status kibana.service
+
 
 ### 5. Установка Apache Utilities:
 #### 5.1. Обновляем репозиторий:
@@ -101,7 +106,7 @@
         query.bool.must = {
           'multi_match': {
             'query': needle,
-            'fields': [ 'title^2', 'summary_processed' ]
+            'fields': [ 'name^2', 'annotation']
           }
         };
       }
@@ -117,8 +122,8 @@
     // Print results on screen.
     var output = '';
     for (var i = 0; i < response.hits.hits.length; i++) {
-      output += '<h3>' + response.hits.hits[i]._source.title + '</h3>';
-      output += response.hits.hits[i]._source.summary_processed[0] + '</br>';
+      output += '<h3>' + response.hits.hits[i]._source.name + '</h3>';
+      output += response.hits.hits[i]._source.annotation + '</br>';
     }
     document.getElementById('total').innerHTML = '<h2>Showing ' + response.hits.hits.length + ' results</h2>';
     document.getElementById('hits').innerHTML = output;
