@@ -275,4 +275,4 @@ PUT silchenko
 #### 11.6. Загружаем предметы (меняем на свои названия файлов):
        cat item_details_full_original.json | \
        jq  -c '.["annotation"] = .attr0 | .["name"] = .attr1 | .["author"] = .attr2 | {annotation, name, author, itemid, parent_id}' | \
-       esbulk -verbose -index item -mapping silchenko_mapping.json
+       esbulk -verbose -index silchenko -mapping silchenko_mapping.json
