@@ -7,9 +7,10 @@ as
 $body$
   SELECT name, annotation
   FROM item,
-       plainto_tsquery('russian', $1) AS q,
-       ts_rank(make_tsvector(name, annotation), q) AS rnk
+       plainto_tsquery('russian', $1) AS q
+       -- ts_rank(make_tsvector(name, annotation), q) AS rnk
   WHERE make_tsvector(name, annotation) @@ q
-  ORDER BY rnk DESC limit 10;
+  -- ORDER BY rnk DESC
+  limit 10;
 $body$
 language sql;
