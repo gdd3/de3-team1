@@ -39,3 +39,18 @@ PUT item
     "number_of_replicas": 0
   }
 }
+
+PUT item/_mapping/default
+{
+    "properties" : {
+        "annotation": {"type": "text"},
+        "name": {"type": "keyword"},
+        "author": {"type": "keyword"},
+        "itemid": {"type": "integer"},
+        "parent_id": {"type": "integer"},
+        "rating": {"type": "double"},
+        "catalogid": {"type": "integer"},
+        "catalogpath": {"type": "text"}
+        }
+    }
+}
