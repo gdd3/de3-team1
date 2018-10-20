@@ -13,7 +13,7 @@ def read_json(input_file, index_name="item", doc_type_name="default"):
             "_type": doc_type_name,
             "_id": json_line["itemid"],
             "_source": {
-                "name": json_line["attr1"],
+                "name": json_line.get("attr1"),
                 "annotation": json_line.get("attr0"),
             },
         }
