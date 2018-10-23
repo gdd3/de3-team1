@@ -9,18 +9,83 @@
 #### 1.4. Устанавливаем Java 8:
        sudo apt-get -y install oracle-java8-installer
 
-### 1. Установка Divolte:
-#### 1.1. Качаем дистрибутив:
+### 2. Устанавливаем Certbot
+#### 2.1. Обновляем репозиторий:
+           sudo apt-get update
+#### 2.2. Добавляем репозиторий Certbot:
+           sudo apt-get install software-properties-common
+           sudo add-apt-repository ppa:certbot/certbot
+#### 2.3. Обновляем репозиторий и устанавливаем Certbot
+           sudo apt-get update
+           sudo apt-get install python-certbot-nginx 
+
+### 3. Установка Nginx:
+#### 3.1. Устанавливаем Nginx:
+       sudo apt-get install nginx
+#### 3.2. Правим конфиги:
+       sudo vi /etc/nginx/sites-available/default
+#### 3.3. Прописываем (подставляем свои доменные имена и IP адреса):
+```bash
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name de3-00-divolte.loveflorida88.online www.de3-00-divolte.loveflorida88.online;
+
+    location / {
+        proxy_pass http://104.199.38.155:8290/;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name de3-00-ambari.loveflorida88.online www.de3-00-ambari.loveflorida88.online;
+
+    location / {
+        proxy_pass http://104.199.38.155:8080/;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+#### 3.4. Привязываем домен и сертификат (меняем на свои доменные имена):
+       sudo certbot --nginx -d de3-00-ambari.loveflorida88.online -d www.de3-00-ambari.loveflorida88.online
+       sudo certbot --nginx -d de3-00-divolte.loveflorida88.online -d www.de3-00-divolte.loveflorida88.online
+#### 3.5. Проверяем и рестартуем сервис:
+       sudo nginx -t
+       sudo nginx -s reload
+       sudo service nginx restart
+#### 3.6. Заходим и проверяем (подставляем свои доменные имена):
+       https://de3-00-ambari.loveflorida88.online
+
+### 4. Установка Divolte:
+#### 4.1. Качаем дистрибутив:
        https://divolte.io/
-#### 1.2. Распаковываем в /opt/divolte/:
+#### 4.2. Распаковываем в /opt/divolte/:
        tar -xzf divolte-collector-*.tar.gz
-#### 1.3. Создаём файл divolte-collector.conf
+#### 4.3. Создаём файл divolte-collector.conf
        touch /opt/divolte/conf/divolte-collector.conf
-#### 1.4. Создаём файл divolte-env.sh:
+#### 4.4. Создаём файл divolte-env.sh:
        cp /opt/divolte/conf/divolte-env.sh.example /opt/divolte/conf/divolte-env.sh
-#### 1.5. Правим файл divolte-env.sh, добавляем:
+#### 4.5. Правим файл divolte-env.sh, добавляем:
        HADOOP_CONF_DIR=/etc/hadoop/conf
-#### 1.6. Правим файл divolte-collector.conf, добавляем:
+#### 4.6. Правим файл divolte-collector.conf, добавляем:
 ```bash
 divolte {
   global {
@@ -110,7 +175,7 @@ divolte {
       schema_file = "/opt/divolte/conf/CheckoutEvent.avsc"
       mapping_script_file = "/opt/divolte/conf/mapping.groovy"
       sources = [browser]
-      sinks = [kafka]
+      sinks = [kafka, hdfs]
     }
   }
   
@@ -121,9 +186,9 @@ divolte {
   }
 }
 ```
-#### 1.8. Создаём файл CheckoutEvent.avsc:
+#### 4.7. Создаём файл CheckoutEvent.avsc:
        touch /opt/divolte/conf/CheckoutEvent.avsc
-#### 1.9. Добавляем туда:
+#### 4.8. Добавляем туда:
 ```bash
 {
     "namespace": "io.divolte.record",
@@ -159,9 +224,9 @@ divolte {
     ]
 }
 ```
-#### 1.10. Создаём файл mapping.groovy:
+#### 4.9. Создаём файл mapping.groovy:
        touch /opt/divolte/conf/mapping.groovy
-#### 1.11. Добавляем туда:
+#### 4.10. Добавляем туда:
 ```bash
 mapping {
     map duplicate() onto 'detectedDuplicate'
@@ -195,15 +260,15 @@ mapping {
     map eventParameter('price') onto 'price'
 }
 ```
-#### 1.12. Создаём рабочие директории в HDFS:
+#### 4.11. Создаём рабочие директории в HDFS:
        sudo su hdfs
        hdfs dfs -mkdir /divolte
        hdfs dfs -mkdir /divolte/inflight
        hdfs dfs -mkdir /divolte/published
        hdfs dfs -chmod -R 0777 /divolte
-#### 1.13. Добавляем скрипт на сайт:
+#### 4.12. Добавляем скрипт на сайт:
 ```bash
-<script src="https://www.de3-00.loveflorida88.online/divolte.js"></script>
+<script src="https://de3-00-divolte.loveflorida88.online/divolte.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
@@ -215,9 +280,12 @@ mapping {
     });
 </script>
 ```
-
-Запускаем Divolte
-./bin/divolte-collector
+#### 4.13. Запускаем Divolte
+        /opt/divolte/bin/
+       ./divolte-collector
+#### 4.14. Проверяем Divolte
+       https://de3-00-divolte.loveflorida88.online/divolte.js
+       /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic egor.silchenko
 
 ### 1. Установка PostgreSQL:
 #### 1.1. Импортируем PostgreSQL public GPG key:
