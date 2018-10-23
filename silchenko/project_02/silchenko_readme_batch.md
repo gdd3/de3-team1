@@ -281,8 +281,7 @@ mapping {
 </script>
 ```
 #### 4.13. Запускаем Divolte
-        /opt/divolte/bin/
-       ./divolte-collector
+       /opt/divolte/bin/divolte-collector
 #### 4.14. Проверяем Divolte
        https://de3-00-divolte.loveflorida88.online/divolte.js
        /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic egor.silchenko
