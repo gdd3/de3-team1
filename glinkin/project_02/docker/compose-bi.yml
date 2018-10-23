@@ -1,0 +1,58 @@
+# Require:
+# export KAFKA_ZOOKEEPER_CONNECT="instance-2.europe-west1-b.c.dataengineer3-218407.internal:2181,instance-3.europe-west2-b.c.dataengineer3-218407.internal:2181,instance-1.europe-west1-b.c.dataengineer3-218407.internal:2181"
+version: '2.1'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    webserver:
+        image: puckel/docker-airflow:1.10.0-4
+        restart: always
+        depends_on:
+            - postgres
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            # Uncomment to include custom plugins
+            # - ./plugins:/usr/local/airflow/plugins
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    kafka-manager:
+        hostname: kafka-manager
+        image: sheepkiller/kafka-manager:latest
+        ports:
+          - "9001:9000"
+        environment:
+            ZK_HOSTS: ${KAFKA_ZOOKEEPER_CONNECT}
+            APPLICATION_SECRET: letmein
+            KM_ARGS: -Djava.net.preferIPv4Stack=true
+
+    clickhouse:
+        ulimits:
+          nproc: 65535
+          nofile:
+            soft: 20000
+            hard: 362144
+        image: yandex/clickhouse-server
+        logging:
+          driver: json-file
+        volumes:
+          - /dev/shm:/dev/shm
+          #- ./config.xml:/etc/clickhouse-server/config.xml
+        ports:
+          - "8123:8123"
+          - "9000:9000"
+        #command: /usr/bin/clickhouse-server --config=/etc/clickhouse-server/config.xml
