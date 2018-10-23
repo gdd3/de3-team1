@@ -1,0 +1,56 @@
+DELETE item
+
+PUT item
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "russian_stop": {
+          "type":       "stop",
+          "stopwords":  "_russian_"
+        },
+        "russian_keywords": {
+          "type":       "keyword_marker",
+          "keywords":   []
+        },
+        "russian_stemmer": {
+          "type":       "stemmer",
+          "language":   "russian"
+        }
+      },
+      "analyzer": {
+        "rebuilt_russian": {
+          "tokenizer":  "standard",
+          "filter": [
+            "lowercase",
+            "russian_stop",
+            "russian_keywords",
+            "russian_stemmer"
+          ]
+        }
+      },
+      "char_filter": {
+        "my_char_filter": {
+          "type": "html_strip"
+        }
+      }
+    },
+    "number_of_shards" : 1,
+    "number_of_replicas": 0
+  }
+}
+
+PUT item/_mapping/default
+{
+    "properties" : {
+        "annotation": {"type": "text"},
+        "name": {"type": "keyword"},
+        "author": {"type": "keyword"},
+        "itemid": {"type": "integer"},
+        "parent_id": {"type": "integer"},
+        "rating": {"type": "double"},
+        "catalogid": {"type": "integer"},
+        "catalogpath": {"type": "text"}
+        }
+    }
+}
