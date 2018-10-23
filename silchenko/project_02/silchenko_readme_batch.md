@@ -14,7 +14,7 @@
        https://divolte.io/
 #### 1.2. Распаковываем в /opt/divolte/:
        tar -xzf divolte-collector-*.tar.gz
-#### 1.3. Создаём файл :divolte-collector.conf
+#### 1.3. Создаём файл divolte-collector.conf
        touch /opt/divolte/conf/divolte-collector.conf
 #### 1.4. Создаём файл divolte-env.sh:
        cp /opt/divolte/conf/divolte-env.sh.example /opt/divolte/conf/divolte-env.sh
@@ -162,7 +162,7 @@ divolte {
 #### 1.10. Создаём файл mapping.groovy:
        touch /opt/divolte/conf/mapping.groovy
 #### 1.11. Добавляем туда:
-```groovy
+```bash
 mapping {
     map duplicate() onto 'detectedDuplicate'
     map corrupt() onto 'detectedCorruption'
@@ -202,6 +202,7 @@ mapping {
        hdfs dfs -mkdir /divolte/published
        hdfs dfs -chmod -R 0777 /divolte
 #### 1.13. Добавляем скрипт на сайт:
+```bash
 <script src="https://www.de3-00.loveflorida88.online/divolte.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
@@ -213,6 +214,7 @@ mapping {
       });
     });
 </script>
+```
 
 Запускаем Divolte
 ./bin/divolte-collector
