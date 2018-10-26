@@ -2,10 +2,10 @@ version: '2'
 services:
   master:
     image: gettyimages/spark
-    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
-    hostname: master
+    command: bin/spark-class org.apache.spark.deploy.master.Master -h localhost
+    hostname: localhost
     environment:
-      MASTER: spark://master:7077
+      MASTER: spark://localhost:7077
       SPARK_CONF_DIR: /conf
       SPARK_PUBLIC_DNS: localhost
     expose:
@@ -24,11 +24,12 @@ services:
     volumes:
       - ./conf/master:/conf
       - ./data:/tmp/data
+    network_mode: "host"
 
   worker:
     image: gettyimages/spark
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
-    hostname: worker
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://localhost:7077
+    hostname: localhost
     environment:
       SPARK_CONF_DIR: /conf
       SPARK_WORKER_CORES: 2
@@ -36,7 +37,7 @@ services:
       SPARK_WORKER_PORT: 8881
       SPARK_WORKER_WEBUI_PORT: 8081
       SPARK_PUBLIC_DNS: localhost
-    links:
+    depends_on:
       - master
     expose:
       - 7012
@@ -49,3 +50,4 @@ services:
     volumes:
       - ./conf/worker:/conf
       - ./data:/tmp/data
+    network_mode: "host"
