@@ -7,7 +7,6 @@
         {"name" : "firstInSession", "type" : "boolean"},
         {"name" : "timestamp", "type" : "long"},
         {"name" : "clientTimestamp", "type" : "long"},
-        {"name" : "remoteHost", "type" : "string"},
         {"name" : "referer", "type" : ["null", "string"]}
     ]
 }
