@@ -181,19 +181,18 @@ divolte {
       // Set the replication factor for created files.
       replication = 3
     }
-  
-  kafka {
+    kafka {
       type = kafka
 
       // This is the name of the topic that data will be produced on
-      topic = egor.silchenko
+      topic = user_event
     }
   }
   
   mappings {
     my_mapping = {
-      schema_file = "/opt/divolte/conf/CheckoutEvent.avsc"
-      mapping_script_file = "/opt/divolte/conf/mapping.groovy"
+      schema_file = "/opt/divolte/conf/user_event.avsc"
+      mapping_script_file = "/opt/divolte/conf/mapping_user_event.groovy"
       sources = [browser]
       sinks = [kafka, hdfs]
     }
@@ -207,45 +206,33 @@ divolte {
 }
 ```
 #### 4.7. Создаём файл CheckoutEvent.avsc:
-       touch /opt/divolte/conf/CheckoutEvent.avsc
+       touch /opt/divolte/conf/user_event.avsc
 #### 4.8. Добавляем туда:
 ```bash
 {
-    "namespace": "io.divolte.record",
-    "type": "record",
-    "name": "CheckoutEventRecord",
-    "fields": [
-        { "name": "detectedDuplicate",       "type": "boolean" },
-        { "name": "detectedCorruption",      "type": "boolean" },
-        { "name": "firstInSession",          "type": "boolean" },
-        { "name": "timestamp",               "type": "long" },
-        { "name": "remoteHost",              "type": "string" },
-        { "name": "referer",                 "type": ["null", "string"], "default": null },
-        { "name": "location",                "type": ["null", "string"], "default": null },
-        { "name": "viewportPixelWidth",      "type": ["null", "int"],    "default": null },
-        { "name": "viewportPixelHeight",     "type": ["null", "int"],    "default": null },
-        { "name": "screenPixelWidth",        "type": ["null", "int"],    "default": null },
-        { "name": "screenPixelHeight",       "type": ["null", "int"],    "default": null },
-        { "name": "partyId",                 "type": ["null", "string"], "default": null },
-        { "name": "sessionId",               "type": ["null", "string"], "default": null },
-        { "name": "pageViewId",              "type": ["null", "string"], "default": null },
-        { "name": "eventType",               "type": "string",           "default": "unknown" },
-        { "name": "userAgentString",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentName",           "type": ["null", "string"], "default": null },
-        { "name": "userAgentFamily",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentVendor",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentType",           "type": ["null", "string"], "default": null },
-        { "name": "userAgentVersion",        "type": ["null", "string"], "default": null },
-        { "name": "userAgentDeviceCategory", "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsFamily",       "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsVersion",      "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsVendor",       "type": ["null", "string"], "default": null },
-        { "name": "price",                   "type": ["null", "string"], "default": null }
+    "doc": "user_event",
+    "type" : "record",
+    "name" : "user_event",
+    "namespace" : "user_event",
+    "fields" : [
+        {"name" : "detectedDuplicate",  "type" : "boolean"},
+        {"name" : "detectedCorruption", "type" : "boolean"},
+        {"name" : "firstInSession",     "type" : "boolean"},
+        {"name" : "timestamp",          "type" : "long"},
+        {"name" : "clientTimestamp",    "type" : "long"},
+        {"name" : "remoteHost",         "type" : "string"},
+        {"name" : "referer",            "type" : ["null", "string"], "default": null },
+        {"name" : "location",           "type" : ["null", "string"], "default": null },
+        {"name" : "partyId",            "type" : ["null", "string"], "default": null },
+        {"name" : "sessionId",          "type" : ["null", "string"], "default": null },
+        {"name" : "pageViewId",         "type" : ["null", "string"], "default": null },
+        {"name" : "eventType",          "type" : "string",           "default": "unknown"},
+        { "name": "price",              "type" : ["null", "string"], "default": null }
     ]
 }
 ```
 #### 4.9. Создаём файл mapping.groovy:
-       touch /opt/divolte/conf/mapping.groovy
+       touch /opt/divolte/conf/mapping_user_event.groovy
 #### 4.10. Добавляем туда:
 ```bash
 mapping {
@@ -253,32 +240,17 @@ mapping {
     map corrupt() onto 'detectedCorruption'
     map firstInSession() onto 'firstInSession'
     map timestamp() onto 'timestamp'
+    map clientTimestamp() onto 'clientTimestamp'
     map remoteHost() onto 'remoteHost'
     map referer() onto 'referer'
     map location() onto 'location'
-    map viewportPixelWidth() onto 'viewportPixelWidth'
-    map viewportPixelHeight() onto 'viewportPixelHeight'
-    map screenPixelWidth() onto 'screenPixelWidth'
-    map screenPixelHeight() onto 'screenPixelHeight'
     map partyId() onto 'partyId'
     map sessionId() onto 'sessionId'
     map pageViewId() onto 'pageViewId'
     map eventType() onto 'eventType'
-
-    map userAgentString() onto 'userAgentString'
-    def ua = userAgent()
-    map ua.name() onto 'userAgentName'
-    map ua.family() onto 'userAgentFamily'
-    map ua.vendor() onto 'userAgentVendor'
-    map ua.type() onto 'userAgentType'
-    map ua.version() onto 'userAgentVersion'
-    map ua.deviceCategory() onto 'userAgentDeviceCategory'
-    map ua.osFamily() onto 'userAgentOsFamily'
-    map ua.osVersion() onto 'userAgentOsVersion'
-    map ua.osVendor() onto 'userAgentOsVendor'
-
-    map eventParameter('price') onto 'price'
+    map eventParameters().value('price') onto 'price'
 }
+
 ```
 #### 4.11. Создаём рабочие директории в HDFS:
        sudo su hdfs
@@ -304,7 +276,7 @@ mapping {
        /opt/divolte/bin/divolte-collector
 #### 4.14. Проверяем Divolte
        https://de3-00-divolte.loveflorida88.online/divolte.js
-       /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --bootstrap-server instance-1.europe-west1-b.c.pro-signal-218407.internal:6667 --topic egor.silchenko --from-beginning
+       /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --bootstrap-server instance-1.europe-west1-b.c.pro-signal-218407.internal:6667 --topic user_event --from-beginning
 
 ### 5. Установка PostgreSQL:
 #### 5.1. Импортируем PostgreSQL public GPG key:
@@ -332,32 +304,51 @@ mapping {
        sudo -u postgres createdb loveflorida88
 #### 6.3. Задаём пароль позователю (меняем на своего пользователя и на свой пароль):
        alter user loveflorida88 with password 'пароль';
-#### 6.4. Создание таблицы (меняем на свою):
+#### 6.4. Создание таблиц user_event (меняем на свою):
 ```sql
-create table silchenko (
-    id int generated by default as identity primary key,
-    ingested_at timestamp default current_timestamp,
-    annotation text,
-    name text,
-    author text,
-    itemid text,
-    parent_id text,
-    rating text,
-    catalogid text,
-    catalogpath text
-);
-```
-#### 6.5. Создание и загрузка таблицы рейтингов (меняем на свою):
-```sql
-create table ratings (
-    id int generated by default as identity primary key,
-    ingested_at timestamp default current_timestamp,
+create table stg_user_event_json (
+    data_id int generated by default as identity primary key,
+    load_data_timestamp timestamp default current_timestamp,
     data jsonb not null
 );
-create index ratings_gin_idx on ratings using gin(data);
+
+create table stg_user_event (
+    detected_duplicate text,
+    detected_corruption text,
+    first_in_session text,
+    timestamp text,
+    client_timestamp text,
+    remote_host text,
+    referer text,
+    location text,
+    party_id text,
+    session_id text,
+    page_view_id text,
+    event_type text,
+    price text
+);
 ```
-      Загрузка:
-       cat ratings_original.json | psql -h localhost -p 5432 loveflorida88 -c "COPY ratings (data) FROM STDIN;"
+#### 6.5. Загрузка таблиц user_event (меняем на свою):
+      Загрузка stg_user_event_json:
+       python3 user_event_consumer.py | psql "user=loveflorida88 password=пароль host=localhost port=5432 sslmode=require" -c "COPY stg_user_event_json (data) FROM STDIN;"
+Загрузка stg_user_event:
+   ```sql
+INSERT INTO stg_user_event
+SELECT
+  data->>'detectedCorruption' as detected_corruption,
+  data->>'detectedDuplicate' as detected_duplicate,
+  data->>'firstInSession' as first_in_session,
+  data->>'timestamp' as timestamp,
+  data->>'clientTimestamp' as client_timestamp,
+  data->>'remoteHost' as remote_host,
+  data->>'referer' as referer,
+  data->>'location' as location,
+  data->>'partyId' as party_id,
+  data->>'sessionId' as session_id,
+  data->>'pageViewId' as page_view_id,
+  data->>'eventType' as event_type,
+  data->>'price' as price
+FROM stg_user_event_json;
 
 ### 7. Установка Airflow:
 #### 7.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
@@ -378,3 +369,4 @@ create index ratings_gin_idx on ratings using gin(data);
        kill -9 {PID}
 #### 7.5. Проверяем, что консоль поднялась (меняем на свой IP):
        http://35.242.187.228:8080/admin/
+#### 7.6. Ставим на автозагрузку:
