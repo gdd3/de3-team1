@@ -14,6 +14,7 @@
         {"name" : "partyId", "type" : ["null", "string"]},
         {"name" : "sessionId", "type" : ["null", "string"]},
         {"name" : "pageViewId", "type" : ["null", "string"]},
-        {"name" : "eventType", "type" : "string"}
+        {"name" : "eventType", "type" : "string"},
+        {"name" : "price", "type": ["null", "string"], "default": null}
     ]
 }

@@ -11,4 +11,5 @@ mapping {
     map sessionId() onto 'sessionId'
     map pageViewId() onto 'pageViewId'
     map eventType() onto 'eventType'
+    map eventParameters().value('price') onto 'price'
 }
