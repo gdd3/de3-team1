@@ -33,7 +33,7 @@ services:
     hostname: kafka-manager
     image: sheepkiller/kafka-manager:latest
     ports:
-      - "9000:9000"
+      - "9001:9000"
     links:
       - zookeeper
       - kafka

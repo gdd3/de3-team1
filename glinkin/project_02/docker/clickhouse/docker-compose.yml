@@ -1,0 +1,19 @@
+version: '2'
+services:
+    clickhouse:
+        ulimits:
+          nproc: 65535
+          nofile:
+            soft: 20000
+            hard: 362144
+        image: yandex/clickhouse-server
+        logging:
+          driver: json-file
+        volumes:
+          - /dev/shm:/dev/shm
+          - ./config.xml:/etc/clickhouse-server/config.xml
+        ports:
+          - "8123:8123"
+          - "9000:9000"
+        command: /usr/bin/clickhouse-server --config=/etc/clickhouse-server/config.xml
+        network_mode: "host"
