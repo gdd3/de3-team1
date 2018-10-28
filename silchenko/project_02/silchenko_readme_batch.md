@@ -205,7 +205,7 @@ divolte {
   }
 }
 ```
-#### 4.7. Создаём файл CheckoutEvent.avsc:
+#### 4.7. Создаём файл user_event.avsc:
        touch /opt/divolte/conf/user_event.avsc
 #### 4.8. Добавляем туда:
 ```bash
@@ -233,7 +233,7 @@ divolte {
     ]
 }
 ```
-#### 4.9. Создаём файл mapping.groovy:
+#### 4.9. Создаём файл mapping_user_event.groovy:
        touch /opt/divolte/conf/mapping_user_event.groovy
 #### 4.10. Добавляем туда:
 ```bash
