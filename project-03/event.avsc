@@ -3,8 +3,6 @@
     "name" : "checkoutEvent",
     "namespace" : "io.divolte.record",
     "fields" : [ 
-        {"name" : "timestamp", "type" : "long"},
-        {"name" : "clientTimestamp", "type" : "long"},
         {"name" : "remoteHost", "type" : "string"}
     ]
 }
