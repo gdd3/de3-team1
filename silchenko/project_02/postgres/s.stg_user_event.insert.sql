@@ -12,5 +12,7 @@ SELECT
   data->>'sessionId' as session_id,
   data->>'pageViewId' as page_view_id,
   data->>'eventType' as event_type,
-  data->>'price' as price
+  data->>'basket_price' as basket_price,
+  data->>'item_id' as item_id,
+  data->>'item_price' as item_price
 FROM stg_user_event_json;

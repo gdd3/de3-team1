@@ -11,5 +11,7 @@ create table stg_user_event (
     session_id text,
     page_view_id text,
     event_type text,
-    price text
+    basket_price text,
+    item_id text,
+    item_price text
 );

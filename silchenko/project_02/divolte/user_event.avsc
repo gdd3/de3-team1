@@ -16,6 +16,8 @@
         {"name" : "sessionId",          "type" : ["null", "string"], "default": null },
         {"name" : "pageViewId",         "type" : ["null", "string"], "default": null },
         {"name" : "eventType",          "type" : "string",           "default": "unknown"},
-        { "name": "price",              "type" : ["null", "string"], "default": null }
+        {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
+        {"name" : "item_id",            "type" : ["null", "string"], "default": null },
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null }
     ]
 }

@@ -227,7 +227,9 @@ divolte {
         {"name" : "sessionId",          "type" : ["null", "string"], "default": null },
         {"name" : "pageViewId",         "type" : ["null", "string"], "default": null },
         {"name" : "eventType",          "type" : "string",           "default": "unknown"},
-        { "name": "price",              "type" : ["null", "string"], "default": null }
+        {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
+        {"name" : "item_id",            "type" : ["null", "string"], "default": null },
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null }
     ]
 }
 ```
@@ -248,9 +250,10 @@ mapping {
     map sessionId() onto 'sessionId'
     map pageViewId() onto 'pageViewId'
     map eventType() onto 'eventType'
-    map eventParameters().value('price') onto 'price'
+    map eventParameter('basket_price') onto 'basket_price'
+    map eventParameter('item_id') onto 'item_id'
+    map eventParameter('item_price') onto 'item_price'
 }
-
 ```
 #### 4.11. Создаём рабочие директории в HDFS:
        sudo su hdfs
@@ -264,10 +267,16 @@ mapping {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
+      // price from basket
       $('.basket-btn-checkout').click(function() {
-        var price_text = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
-        // console.log(price_text);
-        divolte.signal('checkoutEvent', { price: price_text });
+        var basket_price = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('checkoutEvent', { basket_price: basket_price });
+      });
+      // item details
+      $('.product-item-container').click(function() {
+        var item_id = jQuery(this).attr("id");
+        var item_price = $('.product-item-price-current', this).first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('itemEvent', { item_id: item_id, item_price: item_price});
       });
     });
 </script>
@@ -325,14 +334,16 @@ create table stg_user_event (
     session_id text,
     page_view_id text,
     event_type text,
-    price text
+    basket_price text,
+    item_id text,
+    item_price text
 );
 ```
 #### 6.5. Загрузка таблиц user_event (меняем на свою):
       Загрузка stg_user_event_json:
        python3 user_event_consumer.py | psql "user=loveflorida88 password=пароль host=localhost port=5432 sslmode=require" -c "COPY stg_user_event_json (data) FROM STDIN;"
 Загрузка stg_user_event:
-   ```sql
+```sql
 INSERT INTO stg_user_event
 SELECT
   data->>'detectedCorruption' as detected_corruption,
@@ -347,9 +358,11 @@ SELECT
   data->>'sessionId' as session_id,
   data->>'pageViewId' as page_view_id,
   data->>'eventType' as event_type,
-  data->>'price' as price
+  data->>'basket_price' as basket_price,
+  data->>'item_id' as item_id,
+  data->>'item_price' as item_price
 FROM stg_user_event_json;
-
+```
 ### 7. Установка Airflow:
 #### 7.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
        pip3 install "apache-airflow[postgres, celery, devel, devel_hadoop, gcp_api, hdfs, hive, password, slack, ssh]"
