@@ -1,0 +1,12 @@
+{
+    "doc": "pushka_test_record",
+    "namespace": "pushka_test_record",
+    "type": "record",
+    "name": "pushka_test_record",
+    "fields": [
+        { "name": "product",  "type": "string" },
+        { "name": "time",     "type": "long" },
+        { "name": "price",    "type": "int" },
+        { "name": "desc",     "type": "string" }
+    ]
+}

@@ -63,10 +63,30 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 }
+
+server {
+
+    # ssl configuration
+    listen 443 ssl ;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name de3-00-kafka.loveflorida88.online www.de3-00-kafka.loveflorida88.online;
+
+    location / {
+        proxy_pass http://104.199.38.155:6667/;
+        proxy_http_version 1.1;
+        proxy_set_header upgrade $http_upgrade;
+        proxy_set_header connection 'upgrade';
+        proxy_set_header host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 #### 3.4. Привязываем домен и сертификат (меняем на свои доменные имена):
        sudo certbot --nginx -d de3-00-ambari.loveflorida88.online -d www.de3-00-ambari.loveflorida88.online
        sudo certbot --nginx -d de3-00-divolte.loveflorida88.online -d www.de3-00-divolte.loveflorida88.online
+       sudo certbot --nginx -d de3-00-kafka.loveflorida88.online -d www.de3-00-kafka.loveflorida88.online
 #### 3.5. Проверяем и рестартуем сервис:
        sudo nginx -t
        sudo nginx -s reload
@@ -161,19 +181,18 @@ divolte {
       // Set the replication factor for created files.
       replication = 3
     }
-  
-  kafka {
+    kafka {
       type = kafka
 
       // This is the name of the topic that data will be produced on
-      topic = egor.silchenko
+      topic = user_event
     }
   }
   
   mappings {
     my_mapping = {
-      schema_file = "/opt/divolte/conf/CheckoutEvent.avsc"
-      mapping_script_file = "/opt/divolte/conf/mapping.groovy"
+      schema_file = "/opt/divolte/conf/user_event.avsc"
+      mapping_script_file = "/opt/divolte/conf/mapping_user_event.groovy"
       sources = [browser]
       sinks = [kafka, hdfs]
     }
@@ -186,46 +205,36 @@ divolte {
   }
 }
 ```
-#### 4.7. Создаём файл CheckoutEvent.avsc:
-       touch /opt/divolte/conf/CheckoutEvent.avsc
+#### 4.7. Создаём файл user_event.avsc:
+       touch /opt/divolte/conf/user_event.avsc
 #### 4.8. Добавляем туда:
 ```bash
 {
-    "namespace": "io.divolte.record",
-    "type": "record",
-    "name": "CheckoutEventRecord",
-    "fields": [
-        { "name": "detectedDuplicate",       "type": "boolean" },
-        { "name": "detectedCorruption",      "type": "boolean" },
-        { "name": "firstInSession",          "type": "boolean" },
-        { "name": "timestamp",               "type": "long" },
-        { "name": "remoteHost",              "type": "string" },
-        { "name": "referer",                 "type": ["null", "string"], "default": null },
-        { "name": "location",                "type": ["null", "string"], "default": null },
-        { "name": "viewportPixelWidth",      "type": ["null", "int"],    "default": null },
-        { "name": "viewportPixelHeight",     "type": ["null", "int"],    "default": null },
-        { "name": "screenPixelWidth",        "type": ["null", "int"],    "default": null },
-        { "name": "screenPixelHeight",       "type": ["null", "int"],    "default": null },
-        { "name": "partyId",                 "type": ["null", "string"], "default": null },
-        { "name": "sessionId",               "type": ["null", "string"], "default": null },
-        { "name": "pageViewId",              "type": ["null", "string"], "default": null },
-        { "name": "eventType",               "type": "string",           "default": "unknown" },
-        { "name": "userAgentString",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentName",           "type": ["null", "string"], "default": null },
-        { "name": "userAgentFamily",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentVendor",         "type": ["null", "string"], "default": null },
-        { "name": "userAgentType",           "type": ["null", "string"], "default": null },
-        { "name": "userAgentVersion",        "type": ["null", "string"], "default": null },
-        { "name": "userAgentDeviceCategory", "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsFamily",       "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsVersion",      "type": ["null", "string"], "default": null },
-        { "name": "userAgentOsVendor",       "type": ["null", "string"], "default": null },
-        { "name": "price",                   "type": ["null", "string"], "default": null }
+    "doc": "user_event",
+    "type" : "record",
+    "name" : "user_event",
+    "namespace" : "user_event",
+    "fields" : [
+        {"name" : "detectedDuplicate",  "type" : "boolean"},
+        {"name" : "detectedCorruption", "type" : "boolean"},
+        {"name" : "firstInSession",     "type" : "boolean"},
+        {"name" : "timestamp",          "type" : "long"},
+        {"name" : "clientTimestamp",    "type" : "long"},
+        {"name" : "remoteHost",         "type" : "string"},
+        {"name" : "referer",            "type" : ["null", "string"], "default": null },
+        {"name" : "location",           "type" : ["null", "string"], "default": null },
+        {"name" : "partyId",            "type" : ["null", "string"], "default": null },
+        {"name" : "sessionId",          "type" : ["null", "string"], "default": null },
+        {"name" : "pageViewId",         "type" : ["null", "string"], "default": null },
+        {"name" : "eventType",          "type" : "string",           "default": "unknown"},
+        {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
+        {"name" : "item_id",            "type" : ["null", "string"], "default": null },
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null }
     ]
 }
 ```
-#### 4.9. Создаём файл mapping.groovy:
-       touch /opt/divolte/conf/mapping.groovy
+#### 4.9. Создаём файл mapping_user_event.groovy:
+       touch /opt/divolte/conf/mapping_user_event.groovy
 #### 4.10. Добавляем туда:
 ```bash
 mapping {
@@ -233,31 +242,17 @@ mapping {
     map corrupt() onto 'detectedCorruption'
     map firstInSession() onto 'firstInSession'
     map timestamp() onto 'timestamp'
+    map clientTimestamp() onto 'clientTimestamp'
     map remoteHost() onto 'remoteHost'
     map referer() onto 'referer'
     map location() onto 'location'
-    map viewportPixelWidth() onto 'viewportPixelWidth'
-    map viewportPixelHeight() onto 'viewportPixelHeight'
-    map screenPixelWidth() onto 'screenPixelWidth'
-    map screenPixelHeight() onto 'screenPixelHeight'
     map partyId() onto 'partyId'
     map sessionId() onto 'sessionId'
     map pageViewId() onto 'pageViewId'
     map eventType() onto 'eventType'
-
-    map userAgentString() onto 'userAgentString'
-    def ua = userAgent()
-    map ua.name() onto 'userAgentName'
-    map ua.family() onto 'userAgentFamily'
-    map ua.vendor() onto 'userAgentVendor'
-    map ua.type() onto 'userAgentType'
-    map ua.version() onto 'userAgentVersion'
-    map ua.deviceCategory() onto 'userAgentDeviceCategory'
-    map ua.osFamily() onto 'userAgentOsFamily'
-    map ua.osVersion() onto 'userAgentOsVersion'
-    map ua.osVendor() onto 'userAgentOsVendor'
-
-    map eventParameter('price') onto 'price'
+    map eventParameter('basket_price') onto 'basket_price'
+    map eventParameter('item_id') onto 'item_id'
+    map eventParameter('item_price') onto 'item_price'
 }
 ```
 #### 4.11. Создаём рабочие директории в HDFS:
@@ -272,10 +267,16 @@ mapping {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
+      // price from basket
       $('.basket-btn-checkout').click(function() {
-        var price_text = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
-        // console.log(price_text);
-        divolte.signal('checkoutEvent', { price: price_text });
+        var basket_price = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('checkoutEvent', { basket_price: basket_price });
+      });
+      // item details
+      $('.product-item-container').click(function() {
+        var item_id = jQuery(this).attr("id");
+        var item_price = $('.product-item-price-current', this).first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('itemEvent', { item_id: item_id, item_price: item_price});
       });
     });
 </script>
@@ -284,54 +285,101 @@ mapping {
        /opt/divolte/bin/divolte-collector
 #### 4.14. Проверяем Divolte
        https://de3-00-divolte.loveflorida88.online/divolte.js
-       /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic egor.silchenko
+       /usr/hdp/3.0.0.0-1634/kafka/bin/kafka-console-consumer.sh --bootstrap-server instance-1.europe-west1-b.c.pro-signal-218407.internal:6667 --topic user_event --from-beginning
 
-### 1. Установка PostgreSQL:
-#### 1.1. Импортируем PostgreSQL public GPG key:
+### 5. Установка PostgreSQL:
+#### 5.1. Импортируем PostgreSQL public GPG key:
        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-#### 1.2. Выполняем команду и запоминаем результат:
+#### 5.2. Выполняем команду и запоминаем результат:
        lsb_release -cs
-#### 1.3. Создаём файл /etc/apt/sources.list.d/pgdg.list:
+#### 5.3. Создаём файл /etc/apt/sources.list.d/pgdg.list:
        sudo vi /etc/apt/sources.list.d/pgdg.list
-#### 1.4. Помещаем туда строчку, подставив результат команды из шага 1.2.:
+#### 5.4. Помещаем туда строчку, подставив результат команды из шага 1.2.:
        deb http://apt.postgresql.org/pub/repos/apt/  результат команды-pgdg main
       Пример:
        deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main
-#### 1.5. Обновляем репозиторий:
+#### 5.5. Обновляем репозиторий:
        sudo apt-get update
-#### 1.6. Устанавливаем PostgreSQL:
+#### 5.6. Устанавливаем PostgreSQL:
        sudo apt-get install postgresql-10 pgadmin4
+#### 5.7. Добавляем в автозагрузку PostgreSQL и проверяем статус:
+       sudo systemctl enable postgresql@10-main.service
+       sudo systemctl status postgresql@10-main.service
 
-### 2. Создание пользователя, базы данных и таблицы:
-#### 2.1. Создание пользователя:
+### 6. Создание пользователя, базы данных и таблицы:
+#### 6.1. Создание пользователя:
        sudo -u postgres createuser --interactive
-#### 2.2. Создание базы данных (меняем на свою):
+#### 6.2. Создание базы данных (меняем на свою):
        sudo -u postgres createdb loveflorida88
-#### 2.3. Задаём пароль позователю (меняем на своего пользователя и на свой пароль):
+#### 6.3. Задаём пароль позователю (меняем на своего пользователя и на свой пароль):
        alter user loveflorida88 with password 'пароль';
-#### 2.4. Создание таблицы (меняем на свою):
+#### 6.4. Создание таблиц user_event (меняем на свою):
 ```sql
-create table silchenko (
-    id int generated by default as identity primary key,
-    ingested_at timestamp default current_timestamp,
-    annotation text,
-    name text,
-    author text,
-    itemid text,
-    parent_id text,
-    rating text,
-    catalogid text,
-    catalogpath text
-);
-```
-#### 2.5. Создание и загрузка таблицы рейтингов (меняем на свою):
-```sql
-create table ratings (
-    id int generated by default as identity primary key,
-    ingested_at timestamp default current_timestamp,
+create table stg_user_event_json (
+    data_id int generated by default as identity primary key,
+    load_data_timestamp timestamp default current_timestamp,
     data jsonb not null
 );
-create index ratings_gin_idx on ratings using gin(data);
+
+create table stg_user_event (
+    detected_duplicate text,
+    detected_corruption text,
+    first_in_session text,
+    timestamp text,
+    client_timestamp text,
+    remote_host text,
+    referer text,
+    location text,
+    party_id text,
+    session_id text,
+    page_view_id text,
+    event_type text,
+    basket_price text,
+    item_id text,
+    item_price text
+);
 ```
-      Загрузка:
-       cat ratings_original.json | psql -h localhost -p 5432 loveflorida88 -c "COPY ratings (data) FROM STDIN;"
+#### 6.5. Загрузка таблиц user_event (меняем на свою):
+      Загрузка stg_user_event_json:
+       python3 user_event_consumer.py | psql "user=loveflorida88 password=пароль host=localhost port=5432 sslmode=require" -c "COPY stg_user_event_json (data) FROM STDIN;"
+Загрузка stg_user_event:
+```sql
+INSERT INTO stg_user_event
+SELECT
+  data->>'detectedCorruption' as detected_corruption,
+  data->>'detectedDuplicate' as detected_duplicate,
+  data->>'firstInSession' as first_in_session,
+  data->>'timestamp' as timestamp,
+  data->>'clientTimestamp' as client_timestamp,
+  data->>'remoteHost' as remote_host,
+  data->>'referer' as referer,
+  data->>'location' as location,
+  data->>'partyId' as party_id,
+  data->>'sessionId' as session_id,
+  data->>'pageViewId' as page_view_id,
+  data->>'eventType' as event_type,
+  data->>'basket_price' as basket_price,
+  data->>'item_id' as item_id,
+  data->>'item_price' as item_price
+FROM stg_user_event_json;
+```
+### 7. Установка Airflow:
+#### 7.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
+       pip3 install "apache-airflow[postgres, celery, devel, devel_hadoop, gcp_api, hdfs, hive, password, slack, ssh]"
+#### 7.2. Создаём пользователя airflow с паролем в postgres и настраиваем airflow на postgres в файле airflow.cfg:
+       sql_alchemy_conn = postgres://airflow:airflow@localhost:5432/airflow
+#### 7.3. Делаем инициализацию Airflow:
+       airflow initdb
+#### 7.4. Команды запуска Airflow:
+     Start Web Server:
+       nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
+     Start Celery Workers:
+       nohup airflow worker $* >> ~/airflow/logs/worker.logs &
+     Start Scheduler:
+       nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
+     Stopping Services:
+       ps -eaf | grep airflow
+       kill -9 {PID}
+#### 7.5. Проверяем, что консоль поднялась (меняем на свой IP):
+       http://35.242.187.228:8080/admin/
+#### 7.6. Ставим на автозагрузку:

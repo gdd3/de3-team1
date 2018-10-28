@@ -2,10 +2,16 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
+      // price from basket
       $('.basket-btn-checkout').click(function() {
-        var price_text = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
-        // console.log(price_text);
-        divolte.signal('checkoutEvent', { price: price_text });
+        var basket_price = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('checkoutEvent', { basket_price: basket_price });
+      });
+      // item details
+      $('.product-item-container').click(function() {
+        var item_id = jQuery(this).attr("id");
+        var item_price = $('.product-item-price-current', this).first().text().match(/\d+/g).map(Number).join('');
+        divolte.signal('itemEvent', { item_id: item_id, item_price: item_price});
       });
     });
 </script>
