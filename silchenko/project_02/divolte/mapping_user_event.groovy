@@ -14,4 +14,5 @@ mapping {
     map eventParameter('basket_price') onto 'basket_price'
     map eventParameter('item_id') onto 'item_id'
     map eventParameter('item_price') onto 'item_price'
+    map eventParameter('item_url') onto 'item_url'
 }

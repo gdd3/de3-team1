@@ -13,5 +13,6 @@ create table stg_user_event (
     event_type text,
     basket_price text,
     item_id text,
-    item_price text
+    item_price text,
+    item_url text
 );
