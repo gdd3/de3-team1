@@ -39,20 +39,3 @@ services:
             ZK_HOSTS: ${KAFKA_ZOOKEEPER_CONNECT}
             APPLICATION_SECRET: letmein
             KM_ARGS: -Djava.net.preferIPv4Stack=true
-
-    clickhouse:
-        ulimits:
-          nproc: 65535
-          nofile:
-            soft: 20000
-            hard: 362144
-        image: yandex/clickhouse-server
-        logging:
-          driver: json-file
-        volumes:
-          - /dev/shm:/dev/shm
-          #- ./config.xml:/etc/clickhouse-server/config.xml
-        ports:
-          - "8123:8123"
-          - "9000:9000"
-        #command: /usr/bin/clickhouse-server --config=/etc/clickhouse-server/config.xml

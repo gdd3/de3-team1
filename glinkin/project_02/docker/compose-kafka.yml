@@ -5,9 +5,10 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
+
   kafka:
     hostname: kafka
-    image: wurstmeister/kafka:latest
+    image: wurstmeister/kafka:1.0.1
     ports:
       - "9092:9092"
       - "9093:9093"
@@ -27,11 +28,12 @@ services:
       KAFKA_DELETE_RETENTION_MS: 1000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
   kafka-manager:
     hostname: kafka-manager
     image: sheepkiller/kafka-manager:latest
     ports:
-      - "9000:9000"
+      - "9001:9000"
     links:
       - zookeeper
       - kafka
