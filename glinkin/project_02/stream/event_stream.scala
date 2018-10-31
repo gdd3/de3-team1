@@ -31,9 +31,6 @@ val df = spark
   .option("kafka.bootstrap.servers", bootstrap_servers)
   .fromAvro("value", schema)(RETAIN_SELECTED_COLUMN_ONLY)
 
-// TODO: place for aggregation logic
-// val records = df.groupBy("station").count().show()
-
 val stream = df
   // .select(to_json(struct($"referer", $"location", $"timestamp")).alias("value"))
   .select(to_json(struct(fields map col: _*)).alias("value"))
