@@ -18,6 +18,7 @@
         {"name" : "eventType",          "type" : "string",           "default": "unknown"},
         {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
         {"name" : "item_id",            "type" : ["null", "string"], "default": null },
-        {"name" : "item_price",         "type" : ["null", "string"], "default": null }
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null },
+        {"name" : "item_url",           "type" : ["null", "string"], "default": null }
     ]
 }

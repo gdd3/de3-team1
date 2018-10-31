@@ -146,7 +146,7 @@ divolte {
 
         acks = 1
         retries = 0
-        // compression.type = lz4
+        compression.type = none
         max.in.flight.requests.per.connection = 1
       }
     }
@@ -229,7 +229,8 @@ divolte {
         {"name" : "eventType",          "type" : "string",           "default": "unknown"},
         {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
         {"name" : "item_id",            "type" : ["null", "string"], "default": null },
-        {"name" : "item_price",         "type" : ["null", "string"], "default": null }
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null },
+        {"name" : "item_url",           "type" : ["null", "string"], "default": null }
     ]
 }
 ```
@@ -253,6 +254,7 @@ mapping {
     map eventParameter('basket_price') onto 'basket_price'
     map eventParameter('item_id') onto 'item_id'
     map eventParameter('item_price') onto 'item_price'
+    map eventParameter('item_url') onto 'item_url'
 }
 ```
 #### 4.11. Создаём рабочие директории в HDFS:
@@ -266,18 +268,63 @@ mapping {
 <script src="https://de3-00-divolte.loveflorida88.online/divolte.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
-    $(document).ready(function() {
-      // price from basket
-      $('.basket-btn-checkout').click(function() {
-        var basket_price = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).map(Number).join('');
-        divolte.signal('checkoutEvent', { basket_price: basket_price });
+      $(document).ready(function() {
+        $('.basket-btn-checkout').click(function() {
+          var basket_price = $('.basket-coupon-block-total-price-current').first().text().match(/\d+/g).join('');
+          divolte.signal('checkoutEvent', { basket_price: basket_price });
+        });
+
+      $('.product-item-image-wrapper').click(function() {
+        var item_container = $(this).closest('.product-item-container');
+        var item_id = item_container.attr("id");
+        var item_price = $('.product-item-price-current', item_container).first().text().match(/\d+/g).join('');
+        var item_url = $(this).attr("href");
+        divolte.signal('itemViewEvent', {
+            item_id: item_id,
+            item_price: item_price,
+            item_url: item_url
+          }
+        );
       });
-      // item details
-      $('.product-item-container').click(function() {
-        var item_id = jQuery(this).attr("id");
-        var item_price = $('.product-item-price-current', this).first().text().match(/\d+/g).map(Number).join('');
-        divolte.signal('itemEvent', { item_id: item_id, item_price: item_price});
+
+      $('.product-item-title a').click(function() {
+        var item_container = $(this).closest('.product-item-container');
+        var item_id = item_container.attr("id");
+        var item_price = $('.product-item-price-current', item_container).first().text().match(/\d+/g).join('');
+        var item_url = $(this).attr("href");
+        divolte.signal('itemViewEvent', {
+            item_id: item_id,
+            item_price: item_price,
+            item_url: item_url
+          }
+        );
       });
+
+      $('.product-item-button-container').click(function() {
+        var item_container = $(this).closest('.product-item-container');
+        var item_id = item_container.attr("id");
+        var item_price = $('.product-item-price-current', item_container).first().text().match(/\d+/g).join('');
+        var item_url = $('.product-item-image-wrapper', item_container).attr("href");
+        divolte.signal('itemBuyEvent', {
+            item_id: item_id,
+            item_price: item_price,
+            item_url: item_url
+          }
+        );
+      });
+
+      $('.btn.btn-primary.product-item-detail-buy-button').click(function() {
+        var item_id = $('.bx-catalog-element.bx-vendor').attr("id");
+        var item_price = $('.product-item-detail-price-current').first().text().match(/\d+/g).join('');
+        var item_url = $(location).attr("href");
+        divolte.signal('itemBuyEvent', {
+            item_id: item_id,
+            item_price: item_price,
+            item_url: item_url
+          }
+        );
+      });
+
     });
 </script>
 ```
@@ -336,7 +383,8 @@ create table stg_user_event (
     event_type text,
     basket_price text,
     item_id text,
-    item_price text
+    item_price text,
+    item_url text
 );
 ```
 #### 6.5. Загрузка таблиц user_event (меняем на свою):
@@ -360,9 +408,36 @@ SELECT
   data->>'eventType' as event_type,
   data->>'basket_price' as basket_price,
   data->>'item_id' as item_id,
-  data->>'item_price' as item_price
+  data->>'item_price' as item_price,
+  data->>'item_url' as item_url
 FROM stg_user_event_json;
 ```
+### 7. Установка PostgREST:
+#### 7.1. Качаем последнюю версию PostgREST:
+       wget "https://github.com/PostgREST/postgrest/releases/download/v5.1.0/postgrest-v5.1.0-ubuntu.tar.xz"
+#### 7.2. Устанавливаем в /opt/postgrest:
+       tar Jxf postgrest-v5.1.0-ubuntu.tar.xz
+#### 7.3. Создаём файлик api.conf:
+       db-uri = "postgres://юзер:пароль@localhost/база"
+       db-schema = "public"
+       db-anon-role = "роль"
+#### 7.4. Создаём файлик run_postgrest.sh и добавляем:
+       /opt/postgrest/postgrest /opt/postgrest/api.conf
+#### 7.5. Создаём файлик postgrest.service в директории /lib/systemd/system/ и добавляем:
+```bash
+[Unit]
+Description=PostgREST
+
+[Service]
+ExecStart=/bin/bash /opt/postgrest/run_postgrest.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+#### 7.5. Ставим на автозагрузку:
+       sudo systemctl enable postgrest.service
+       sudo systemctl status postgrest.service
+
 ### 7. Установка Airflow:
 #### 7.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
        pip3 install "apache-airflow[postgres, celery, devel, devel_hadoop, gcp_api, hdfs, hive, password, slack, ssh]"
@@ -370,11 +445,10 @@ FROM stg_user_event_json;
        sql_alchemy_conn = postgres://airflow:airflow@localhost:5432/airflow
 #### 7.3. Делаем инициализацию Airflow:
        airflow initdb
-#### 7.4. Команды запуска Airflow:
+#### 7.4. Создаём в директории $AIRFLOW_HOME директорию dags.
+#### 7.5. Команды запуска Airflow:
      Start Web Server:
        nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
-     Start Celery Workers:
-       nohup airflow worker $* >> ~/airflow/logs/worker.logs &
      Start Scheduler:
        nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
      Stopping Services:
