@@ -1,4 +1,4 @@
-create table stg_user_event_2 (
+create table stg_user_event (
     detected_duplicate text,
     detected_corruption text,
     first_in_session text,

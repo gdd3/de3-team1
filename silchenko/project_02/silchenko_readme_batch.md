@@ -372,7 +372,7 @@ create table stg_user_event (
     detected_duplicate text,
     detected_corruption text,
     first_in_session text,
-    timestamp text,
+    timestamp bigint,
     client_timestamp text,
     remote_host text,
     referer text,
@@ -386,18 +386,20 @@ create table stg_user_event (
     item_price text,
     item_url text
 );
+create index stg_user_event_idx on stg_user_event (timestamp desc);
+
 ```
 #### 6.5. Загрузка таблиц user_event (меняем на свою):
       Загрузка stg_user_event_json:
        python3 user_event_consumer.py | psql "user=loveflorida88 password=пароль host=localhost port=5432 sslmode=require" -c "COPY stg_user_event_json (data) FROM STDIN;"
 Загрузка stg_user_event:
 ```sql
-INSERT INTO stg_user_event
-SELECT
+insert into stg_user_event
+select
   data->>'detectedCorruption' as detected_corruption,
   data->>'detectedDuplicate' as detected_duplicate,
   data->>'firstInSession' as first_in_session,
-  data->>'timestamp' as timestamp,
+  (data->>'timestamp') ::bigint as timestamp,
   data->>'clientTimestamp' as client_timestamp,
   data->>'remoteHost' as remote_host,
   data->>'referer' as referer,
@@ -410,8 +412,59 @@ SELECT
   data->>'item_id' as item_id,
   data->>'item_price' as item_price,
   data->>'item_url' as item_url
-FROM stg_user_event_json;
+from stg_user_event_json;
+
+delete from stg_user_event_json;
 ```
+#### 6.5. Делаем функцию для orders, которую будем вызывать через Postgrest:
+```sql
+create or replace function orders(in_timestamp bigint)
+  returns table (item_url text, item_id text, item_cnt bigint, item_sum bigint)
+as
+$body$
+  select
+      item_url
+    , regexp_replace(regexp_replace(item_url, 'https://b24-z2eha2.bitrix24.shop/katalog/item/', ''), '/', '') as item_id
+    , count(*) as item_cnt
+    , sum(item_price ::int) as item_sum
+    from stg_user_event
+  where event_type = 'itemBuyEvent'
+    and timestamp >= $1
+  group by item_url;
+$body$
+language sql;
+```
+#### 6.6. Делаем функцию для users, которую будем вызывать через Postgrest:
+```sql
+create or replace function users(in_timestamp bigint)
+  returns table (item_url text, item_id text, view_item_count bigint, view_item_deep numeric)
+as
+$body$
+  select
+      x.item_url
+    , x.item_id
+    , count (*) as view_item_count
+    , avg(sess_item_view_deep) as view_item_deep
+    from (
+      select
+          timestamp
+        , session_id
+        , item_url
+        , event_type
+        , regexp_replace(regexp_replace(item_url, 'https://b24-z2eha2.bitrix24.shop/katalog/item/', ''), '/', '') as item_id
+        , row_number() over (partition by session_id, item_url, event_type order by timestamp ) sess_item_view_cnt
+        , row_number() over (partition by session_id order by timestamp) as sess_item_view_deep
+        from stg_user_event
+       where 1 = 1
+         and timestamp >= $1
+      order by timestamp) as x
+   where x.event_type = 'itemViewEvent'
+  group by x.item_url, x.item_id
+  order by x.item_url;
+$body$
+language sql;
+```
+
 ### 7. Установка PostgREST:
 #### 7.1. Качаем последнюю версию PostgREST:
        wget "https://github.com/PostgREST/postgrest/releases/download/v5.1.0/postgrest-v5.1.0-ubuntu.tar.xz"
@@ -438,15 +491,132 @@ WantedBy=multi-user.target
        sudo systemctl enable postgrest.service
        sudo systemctl status postgrest.service
 
-### 7. Установка Airflow:
-#### 7.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
+### 8. Установка Flask:
+#### 8.1. Ставим Flask:
+       pip3 install flask
+#### 8.2. Создаём скрипт для flask (меняем на свои ссылки и параметры) api.py:
+```python
+import requests
+import json
+import time
+import datetime
+from flask import Flask, abort, jsonify
+
+
+app = Flask(__name__)
+app.config["POSTGREST_API_URL"] = "http://localhost:3000/rpc/"
+
+
+@app.route("/")
+def hello():
+    return "Это API для чекера!"
+
+
+@app.route("/api/v1.0/orders/<int:timestamp>", methods=["GET"])
+def get_orders(timestamp):
+    if timestamp < 940312918:
+        abort(404)
+    json_data = {"in_timestamp":str(timestamp)}
+    headers = {"Content-Type": "application/json"}
+    url = app.config["POSTGREST_API_URL"]+"orders"
+    res = requests.post(
+        url=url,
+        data=json.dumps(json_data),
+        headers=headers,
+    )
+    data = {
+        "timestamp": timestamp,
+        "contents": json.loads(res.text),
+        "check": True,
+    }
+    return jsonify(data)
+
+
+@app.route("/api/v1.0/orders/", methods=["GET"])
+def get_orders_hour_ago():
+    hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+    timestamp = int(
+        time.mktime(hour_ago.timetuple()) * 1e3 + hour_ago.microsecond / 1e3
+    )
+    json_data = {"in_timestamp":str(timestamp)}
+    headers = {"Content-Type": "application/json"}
+    url = app.config["POSTGREST_API_URL"]+"orders"
+    res = requests.post(
+        url=url,
+        data=json.dumps(json_data),
+        headers=headers,
+    )
+    data = {
+        "timestamp": timestamp,
+        "contents": json.loads(res.text),
+        "check": True,
+    }
+    return jsonify(data)
+
+
+@app.route("/api/v1.0/users/<int:timestamp>", methods=["GET"])
+def get_users(timestamp):
+    if timestamp < 940312918:
+        abort(404)
+    json_data = {"in_timestamp":str(timestamp)}
+    headers = {"Content-Type": "application/json"}
+    url = app.config["POSTGREST_API_URL"]+"users"
+    res = requests.post(
+        url=url,
+        data=json.dumps(json_data),
+        headers=headers,
+    )
+    data = {
+        "timestamp": timestamp,
+        "contents": json.loads(res.text),
+        "check": True,
+    }
+    return jsonify(data)
+
+
+@app.route("/api/v1.0/users/", methods=["GET"])
+def get_users_hour_ago():
+    hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+    timestamp = int(
+        time.mktime(hour_ago.timetuple()) * 1e3 + hour_ago.microsecond / 1e3
+    )
+    json_data = {"in_timestamp":str(timestamp)}
+    headers = {"Content-Type": "application/json"}
+    url = app.config["POSTGREST_API_URL"]+"users"
+    res = requests.post(
+        url=url,
+        data=json.dumps(json_data),
+        headers=headers,
+    )
+    data = {
+        "timestamp": timestamp,
+        "contents": json.loads(res.text),
+        "check": True,
+    }
+    return jsonify(data)
+
+
+if __name__ == "__main__":
+    app.run()
+```
+#### 8.3. Запускаем flask:
+       export FLASK_APP=api.py
+       flask run -h 0.0.0.0 -p 5001
+#### 8.4. Проверяем свой flask api (подставляем свой IP):
+       http://35.242.187.228:5001/api/v1.0/users/
+       http://35.242.187.228:5001/api/v1.0/users/1540905227894
+       http://35.242.187.228:5001/api/v1.0/orders/
+       http://35.242.187.228:5001/api/v1.0/orders/1540905227894
+
+### 9. Установка Airflow:
+#### 9.1. Ставим Airflow. Если возникают ошибки по зависимым пакетам, так же ставим их.
        pip3 install "apache-airflow[postgres, celery, devel, devel_hadoop, gcp_api, hdfs, hive, password, slack, ssh]"
-#### 7.2. Создаём пользователя airflow с паролем в postgres и настраиваем airflow на postgres в файле airflow.cfg:
+#### 9.2. Создаём пользователя airflow с паролем в postgres и настраиваем airflow на postgres в файле airflow.cfg:
        sql_alchemy_conn = postgres://airflow:airflow@localhost:5432/airflow
-#### 7.3. Делаем инициализацию Airflow:
+#### 9.3. Делаем инициализацию Airflow:
        airflow initdb
-#### 7.4. Создаём в директории $AIRFLOW_HOME директорию dags.
-#### 7.5. Команды запуска Airflow:
+#### 9.4. Создаём в директории $AIRFLOW_HOME директорию dags.
+#### 9.5. Команды запуска Airflow:
      Start Web Server:
        nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
      Start Scheduler:
@@ -454,6 +624,6 @@ WantedBy=multi-user.target
      Stopping Services:
        ps -eaf | grep airflow
        kill -9 {PID}
-#### 7.5. Проверяем, что консоль поднялась (меняем на свой IP):
+#### 9.5. Проверяем, что консоль поднялась (меняем на свой IP):
        http://35.242.187.228:8080/admin/
-#### 7.6. Ставим на автозагрузку:
+#### 9.6. Ставим на автозагрузку:
