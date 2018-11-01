@@ -1,0 +1,13 @@
+# Require:
+# export KAFKA_ZOOKEEPER_CONNECT="instance-2.europe-west1-b.c.dataengineer3-218407.internal:2181,instance-3.europe-west2-b.c.dataengineer3-218407.internal:2181,instance-1.europe-west1-b.c.dataengineer3-218407.internal:2181"
+version: '2.1'
+services:
+    kafka-manager:
+        hostname: kafka-manager
+        image: sheepkiller/kafka-manager:latest
+        ports:
+          - "9001:9000"
+        environment:
+            ZK_HOSTS: ${KAFKA_ZOOKEEPER_CONNECT}
+            APPLICATION_SECRET: letmein
+            KM_ARGS: -Djava.net.preferIPv4Stack=true

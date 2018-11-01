@@ -14,15 +14,15 @@ import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}
+import org.apache.spark.sql.types.{DateType, TimestampType}
 import org.apache.avro.Schema
 import za.co.absa.abris.avro.AvroSerDe._
 import za.co.absa.abris.avro.read.confluent.SchemaManager
 import za.co.absa.abris.avro.schemas.policy.SchemaRetentionPolicies._
 
 val schema = new Schema.Parser().parse(new File("avro/CheckoutEvent.avsc"))
-val fields = schema.getFields().map(field => field.name).to[Array]
-var bootstrap_servers = "instance-1.europe-west1-b.c.dataengineer3-218407.internal:6667"
-// var bootstrap_servers = "localhost:9092"
+// var bootstrap_servers = "instance-1.europe-west1-b.c.dataengineer3-218407.internal:6667"
+var bootstrap_servers = "localhost:9092"
 
 val df = spark
   .readStream
@@ -31,23 +31,43 @@ val df = spark
   .option("kafka.bootstrap.servers", bootstrap_servers)
   .fromAvro("value", schema)(RETAIN_SELECTED_COLUMN_ONLY)
 
-val stream = df
-  // .select(to_json(struct($"referer", $"location", $"timestamp")).alias("value"))
-  .select(to_json(struct(fields map col: _*)).alias("value"))
+val orders_stream = df
+  .selectExpr(
+    "timestamp",
+    "item_url",
+    "cast (item_price as long)")
+  .withColumn("timestamp", ($"timestamp" / 1000).cast(TimestampType))
+  .withWatermark("timestamp","30 minutes")
+  .filter($"eventType" === "itemBuyEvent")
+  .groupBy("item_url")
+  .agg(
+    count("item_url").alias("order_count"),
+    sum("item_price").alias("order_sum"))
+
+val stream = orders_stream
+  .select(to_json(struct(
+    $"item_url",
+    $"order_count",
+    $"order_sum")).alias("value")
+  )
   .writeStream
   .format("kafka")
   .option("checkpointLocation", "/tmp/checkpoint")
   .option("kafka.bootstrap.servers", bootstrap_servers)
-  .option("topic", "events-json")
+  .option("topic", "orders-json")
+  .trigger(Trigger.ProcessingTime(1.seconds))
+  .outputMode(OutputMode.Update)
   .start()
 stream.awaitTermination()
 
 // NOTE: debug stream
-// val stream = df.
-//   writeStream.
-//   format("console").
-//   option("truncate", false).
-//   option("checkpointLocation", "/tmp/checkpoint").
-//   trigger(Trigger.ProcessingTime(5.seconds)).
-//   outputMode(OutputMode.Update).
-//   start()
+// val stream = orders_stream
+//   .writeStream
+//   .format("console")
+//   .option("truncate", false)
+//   .option("checkpointLocation", "/tmp/checkpoint")
+//   // .trigger(Trigger.Continuous("1 second"))
+//   .trigger(Trigger.ProcessingTime(1.seconds))
+//   .outputMode(OutputMode.Update)
+//   .start()
+// stream.awaitTermination()

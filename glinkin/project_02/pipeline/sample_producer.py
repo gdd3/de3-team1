@@ -32,12 +32,13 @@ if __name__ == '__main__':
     for line in open("sample_producer_data.json"):
         records.append(json.loads(line))
 
-    for _ in range(10000):
-        record = random.choice(records)
+    # for _ in range(10000):
+    #     record = random.choice(records)
+    #     print(f"Send: {record}")
+    #     producer.send(TOPIC, serialize(schema, record))
+    #     time.sleep(2)
+
+    for record in records:
         print(f"Send: {record}")
         producer.send(TOPIC, serialize(schema, record))
         time.sleep(2)
-
-    # for record in records:
-    #     print(f"Send: {record}")
-    #     producer.send(TOPIC, serialize(schema, record))

@@ -1,6 +1,6 @@
 consumer:
   bootstrap.servers: 35.233.8.138:6667
-  #bootstrap.servers: localhost:9092
+  bootstrap.servers: localhost:9092
   group.id: events-group
   auto.offset.reset: earliest
   enable.auto.commit: true
