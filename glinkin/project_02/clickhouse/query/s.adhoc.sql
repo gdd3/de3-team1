@@ -29,7 +29,7 @@ select timestamp,
        replaceOne(item_url, 'https://b24-d2wt09.bitrix24.shop', '~') as item_url,
        item_price,
        basket_price
-from event_stream
+from event
 where eventType != 'checkoutEvent'
 -- where sessionId != '0:jnu6ph44:kxtaa4hPKImjpoyQSgSYCuzoFOMrHA4f'
 order by timestamp, sessionId;
