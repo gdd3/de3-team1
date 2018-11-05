@@ -1,0 +1,18 @@
+{
+    "type" : "record",
+    "name" : "checkoutEvent",
+    "namespace" : "io.divolte.record",
+    "fields" : [
+        {"name" : "firstInSession", "type" : "boolean"},
+        {"name" : "timestamp", "type" : "long"},
+        {"name" : "clientTimestamp", "type" : "long"},
+        {"name" : "remoteHost", "type" : "string"},
+        {"name" : "referer", "type" : ["null", "string"]},
+        {"name" : "location", "type" : ["null", "string"]},
+        {"name" : "partyId", "type" : ["null", "string"]},
+        {"name" : "sessionId", "type" : ["null", "string"]},
+        {"name" : "pageViewId", "type" : ["null", "string"]},
+        {"name" : "eventType", "type" : "string"},
+        {"name" : "price", "type": ["null", "string"], "default": null}
+    ]
+}
