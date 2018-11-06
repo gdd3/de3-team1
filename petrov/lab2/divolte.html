@@ -1,0 +1,22 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.0/mustache.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+<script>
+    requirejs.config({
+      paths: {
+        divolte: 'https://domain/divolte/divolte'
+      }
+    });
+    require(['divolte']);
+    require(['divolte'], function(divolte) {
+      $(document.body).on('click', '.product-item-detail-buy-button', function() {
+        divolte.signal(
+          "buy_button_click", 
+          {
+            "price": document.getElementsByClassName('product-item-detail-price-current')[0].innerText,
+            "amount": document.getElementsByClassName('product-item-amount-field')[0].value
+          }
+        );
+      });
+    });
+</script> 

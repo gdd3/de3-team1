@@ -1,0 +1,13 @@
+{
+  "namespace": "io.divolte.examples.record",
+  "type": "record",
+  "name": "lab2_event",
+  "fields": [
+    { "name": "timestamp",  "type": "long" },
+    { "name": "eventType",  "type": ["null", "string"], "default": null },
+    { "name": "location",   "type": ["null", "string"], "default": null },
+    { "name": "sessionId",   "type": ["null", "string"], "default": null },
+    { "name": "price",   "type": ["null", "string"], "default": null },
+    { "name": "amount",   "type": ["null", "string"], "default": null }
+  ]
+}
