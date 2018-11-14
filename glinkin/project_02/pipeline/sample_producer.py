@@ -41,4 +41,4 @@ if __name__ == '__main__':
     for record in records:
         print(f"Send: {record}")
         producer.send(TOPIC, serialize(schema, record))
-        time.sleep(2)
+        time.sleep(1)
