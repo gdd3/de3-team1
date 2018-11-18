@@ -1,0 +1,24 @@
+{
+    "doc": "user_event",
+    "type" : "record",
+    "name" : "user_event",
+    "namespace" : "user_event",
+    "fields" : [
+        {"name" : "detectedDuplicate",  "type" : "boolean"},
+        {"name" : "detectedCorruption", "type" : "boolean"},
+        {"name" : "firstInSession",     "type" : "boolean"},
+        {"name" : "timestamp",          "type" : "long"},
+        {"name" : "clientTimestamp",    "type" : "long"},
+        {"name" : "remoteHost",         "type" : "string"},
+        {"name" : "referer",            "type" : ["null", "string"], "default": null },
+        {"name" : "location",           "type" : ["null", "string"], "default": null },
+        {"name" : "partyId",            "type" : ["null", "string"], "default": null },
+        {"name" : "sessionId",          "type" : ["null", "string"], "default": null },
+        {"name" : "pageViewId",         "type" : ["null", "string"], "default": null },
+        {"name" : "eventType",          "type" : "string",           "default": "unknown"},
+        {"name" : "basket_price",       "type" : ["null", "string"], "default": null },
+        {"name" : "item_id",            "type" : ["null", "string"], "default": null },
+        {"name" : "item_price",         "type" : ["null", "string"], "default": null },
+        {"name" : "item_url",           "type" : ["null", "string"], "default": null }
+    ]
+}
