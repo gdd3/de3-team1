@@ -19,7 +19,6 @@ object Main {
     val fields = schema.getFields().map(field => field.name).to[Array]
     val conf = ConfigFactory.load()
 
-
     val spark = SparkSession.builder
       .master("local[*]")
       .appName("EventStream")
@@ -40,6 +39,8 @@ object Main {
       .option("kafka.bootstrap.servers", conf.getString("kafka.bootstrap_servers"))
       .option("topic", conf.getString("kafka.to_topic"))
       .start()
+
     events.awaitTermination()
+    spark.stop()
   }
 }
