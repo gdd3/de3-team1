@@ -1,0 +1,8 @@
+[Unit]
+Description=PostgREST
+
+[Service]
+ExecStart=/bin/bash /opt/postgrest/run_postgrest.sh
+
+[Install]
+WantedBy=multi-user.target
