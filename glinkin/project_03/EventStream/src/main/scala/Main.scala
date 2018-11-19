@@ -3,8 +3,6 @@ import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
 import org.apache.avro.Schema
 import za.co.absa.abris.avro.AvroSerDe._
 import za.co.absa.abris.avro.read.confluent.SchemaManager
