@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5m
+  external_labels:
+    monitor: 'online_store'
+
+scrape_configs:
+  - job_name: 'test_job'
+
+    scrape_interval: 5m
+
+    static_configs:
+      - targets: ['localhost:8013']

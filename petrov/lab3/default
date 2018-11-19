@@ -1,0 +1,30 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name 35.187.50.44, bpda.xyz;
+    
+    root /var/www/html;    
+    index index.html index.htm index.nginx-debian.html;
+
+    location /search/ {
+        index index.html;
+        alias /var/www/html/de3_search/;
+        default_type text/html;
+    }
+    
+    location /divolte/ {
+        proxy_pass http://localhost:8290/;
+    }
+    
+    location /api/v1.0/ {
+        proxy_pass http://localhost:5002/api/v1.0/;
+    }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/bpda.xyz/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/bpda.xyz/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}

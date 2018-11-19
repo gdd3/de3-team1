@@ -1,0 +1,21 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.0/mustache.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+<script>
+    requirejs.config({
+      paths: {
+        divolte: 'https://host/divolte/divolte'
+      }
+    });
+    require(['divolte']);
+    require(['divolte'], function(divolte) {
+      $(document.body).on('click', '.basket-btn-checkout', function() {
+        divolte.signal(
+          "checkout_click", 
+          {
+            "total_price": document.getElementsByClassName('basket-coupon-block-total-price-current')[0].innerText
+          }
+        );
+      });
+    });
+</script> 
