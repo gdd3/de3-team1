@@ -91,6 +91,7 @@ sudo systemctl start grafana-server
 ```
 В настройках можно поменять порта на `3001`, чтобы не было конфликтов с другими службами. Переходим по адресу `localhost:3001`.
 Далее в веб-интерфейсе настраиваем источник данных и дэшборд.
+![dashboard screenshot](dashboard.PNG)
 
 ## Настройка API
 Аналогично второй лабораторной работе, только вместо подключения к БД, конверсия забирается напрямую с веб-страницы с текущими метриками. 
@@ -106,3 +107,19 @@ def get_conversion():
     return metrics['conversion']/100
 ```
 
+## Полезные ссылки
+- [Prometheus Python Client](https://github.com/prometheus/client_python)
+- [Grafana support for Prometheus](https://prometheus.io/docs/visualization/grafana/)
+- [Grafana Basic Concepts](http://docs.grafana.org/guides/basic_concepts/)
+
+## Описание файлов
+- [consumer.py](consumer.py) -- скрипт для расчета метрик на новых сообщениях из Kafka
+- [dashboard.PNG](dashboard.PNG) -- скриншот дэшборда Grafana
+- [default](default) -- конфиг nginx
+- [divolte-collector.conf](divolte-collector.conf) -- конфиг divolte
+- [divolte.html](divolte.html) -- кусок html, который необходимо вставить на страницу для сбора кликстрим
+- [lab3.avsc](lab3.avsc) -- avro-схема для событий divolte
+- [lab3_api.py](lab3_api.py) -- веб-приложение на flask, реализующее API для запросов метрик
+- [lab3_mapping.groovy](lab3_mapping.groovy) -- маппинг в поля avro-схемы
+- [metrics.py](metrics.py) -- скрипт для расчета метрик по таймеру
+- [prometheus.yml](prometheus.yml) -- конфиг Prometheus
